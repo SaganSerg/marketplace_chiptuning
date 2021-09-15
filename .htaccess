@@ -1,0 +1,8 @@
+RewriteEngine On
+RewriteCond %{REQUEST_URI} !^/app/resources/styles/(.*).css$
+RewriteCond %{REQUEST_URI} !^/app/resources/images/(.*).png$
+RewriteCond %{REQUEST_URI} !^/app/resources/images/(.*).jpg$
+RewriteCond %{REQUEST_URI} !^/app/resources/images/(.*).svg$
+RewriteCond %{REQUEST_URI} !^/app/resources/scripts/(.*).js$
+RewriteCond %{REQUEST_URI} !^/favicon.ico$
+RewriteRule ^(.*)$ app/index.php?${REQUEST_URI} [QSA,L]
