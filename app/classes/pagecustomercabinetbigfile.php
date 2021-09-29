@@ -1,7 +1,7 @@
 <?php
 class PageCustomerCabinetBigfile extends PageCustomerCabinet
 {
-    protected $pageName = 'Bigfile';
+    protected $pageName = '/bigfile';
     function __construct($name, $customer_id, $login, $coins)
     {
         $this->dictionaryMain = $this->composeDictionaryMain();

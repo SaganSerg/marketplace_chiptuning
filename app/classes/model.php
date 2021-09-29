@@ -581,27 +581,27 @@ class Model
     //     print (new PageCustomerFacadeNotfound('Notfound'))->getHTML();
     //         exit;
     // }
-    function updateCoins($addingCoins, int $valueId)
+    function updateCoins($addingCoins, int $customer_id, $whatIsTransaction)
     {
         if (is_numeric($addingCoins)) {
             $date = time();
-            $this->addElements(
-                "INSERT INTO buy_coins (customer_id, buy_coins_date, buy_coins_sum) VALUES (?, $date, ?)",
-                [$valueId, $addingCoins]
+            $coin_transaction_id = $this->addElements(
+                "INSERT INTO coin_transaction (customer_id, coin_transaction_date, coin_transaction_sum, coin_transaction_status) VALUES (?, $date, ?, ?)",
+                [$customer_id, $addingCoins, $whatIsTransaction]
             );
             $resentCoinsList = $this->getElements(
                 "SELECT customer_coins FROM customer WHERE customer_id = ?",
-                [$valueId]
+                [$customer_id]
             );
             if (count($resentCoinsList) > 1) {
                 throw new Exception();
             }
             $coins = $resentCoinsList[0]['customer_coins'] + $addingCoins;
 
-            return $this->updateElements(
+            $this->updateElements(
                 "UPDATE customer SET customer_coins = $coins WHERE customer_id = ?", 
-                [$valueId]);
-
+                [$customer_id]);
+            return $coin_transaction_id;
         }
         print (new PageCustomerFacadeNotfound('Notfound'))->getHTML();
             exit;
@@ -625,7 +625,7 @@ class Model
             $result = $appDB->prepare($query);
             $exec = $result->execute($parameters);
             $appDB->commit();
-            return $exec; 
+            return $exec; // возвращает количество модифицированных строк
         } catch (PDOException $e) {
             echo $e->getMessage();
             $appDB->commit();
@@ -651,5 +651,13 @@ class Model
             echo $e->getMessage();
             $appDB->commit();
         }
+    }
+    function updatePass($password, $customer_id)
+    {
+        $hashPass = $this->hashPass($this->cleanForm($password));
+        return $this->updateElements(
+            "UPDATE customer SET customer_password = ? WHERE customer_id = ?",
+            [$hashPass, $customer_id]
+        );
     }
 }

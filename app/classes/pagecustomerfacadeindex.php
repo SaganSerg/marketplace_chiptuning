@@ -1,7 +1,7 @@
 <?php
 class PageCustomerFacadeIndex extends PageCustomerFacade
 {
-    protected $pageName = 'Index';
+    protected $pageName = '/index';
     protected const INPUT_ATTRIBUTE_NAME = [
         'registration' => ['email' => "Email", 'pass' => 'Pass']
     ];
@@ -82,7 +82,7 @@ class PageCustomerFacadeIndex extends PageCustomerFacade
                 'en' => 'Password',
                 'ru' => 'Пароль'
             ],
-            'RememberpassMain' => [
+            'RememberpasswordMain' => [
                 'en' => 'Remember password',
                 'ru' => 'Вспомнить пароль'
             ]
@@ -142,7 +142,7 @@ class PageCustomerFacadeIndex extends PageCustomerFacade
             </fieldset>
         </form>
         {$this->getNormalLink('/registration', "main__button button button__green", $this->getText($this->lang, "RegistrationMain"), 'Registration')}
-        {$this->getNormalLink('/rememberpass', "main__button button button__green", $this->getText($this->lang, "RememberpassMain"), 'Rememberpass')}
+        {$this->getNormalLink('/rememberpassword', "main__button button button__green", $this->getText($this->lang, "RememberpasswordMain"), $this->pageName)}
         {$this->getFacadeFooter($this->pageName, $hiddenInputs)}
     
 HTML;

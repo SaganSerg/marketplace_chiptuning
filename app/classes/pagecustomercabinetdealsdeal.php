@@ -2,14 +2,20 @@
 class PageCustomerCabinetDealsdeal extends PageCustomerCabinetDeals
 {
     private $dealSpecification;
-    private $parametersServicesMessages;
-    protected $pageName = 'Dealsdeal';
-    function __construct($name, $customer_id, $login, $coins, $dealSpecification, $parametersServicesMessages)
+    private $messages;
+    private $customerOrderData;
+    private $customerOrderService;
+    private $customer_order_id;
+    protected $pageName = '/dealsdeal';
+    function __construct($name, $customer_id, $email, $coins, $dealSpecification, $messages, $customerOrderData, $customerOrderService, $customer_order_id)
     {
         $this->dealSpecification =  $dealSpecification;
-        $this->parametersServicesMessages = $parametersServicesMessages;
+        $this->messages = $messages;
+        $this->customerOrderData = $customerOrderData;
+        $this->customerOrderService = $customerOrderService;
+        $this->customer_order_id = $customer_order_id;
         $this->dictionaryMain = $this->composeDictionaryMain();
-        parent::__construct($name, $customer_id, $login, $coins);
+        parent::__construct($name, $customer_id, $email, $coins);
     }
     private function composeDictionaryMain() {
         return [
@@ -105,7 +111,15 @@ class PageCustomerCabinetDealsdeal extends PageCustomerCabinetDeals
                 'en' => 'A vehicle type',
                 'ru' => 'Тип транспортного средства'
             ],
+            'vehicle_type' => [
+                'en' => 'A vehicle type',
+                'ru' => 'Тип транспортного средства'
+            ],
             'VehicleBrand' => [
+                'en' => 'A vehicle brand',
+                'ru' => 'Брэнд транспортного средства'
+            ],
+            'vehicle_brand' => [
                 'en' => 'A vehicle brand',
                 'ru' => 'Брэнд транспортного средства'
             ],
@@ -113,7 +127,16 @@ class PageCustomerCabinetDealsdeal extends PageCustomerCabinetDeals
                 'en' => 'A vehicle model',
                 'ru' => 'Модель транспортного средства'
             ],
+            'vehicle_model' => [
+                'en' => 'A vehicle model',
+                'ru' => 'Модель транспортного средства'
+            ],
+            
             'Car' => [
+                'en' => 'Car',
+                'ru' => 'Автомобиль'
+            ],
+            'car' => [
                 'en' => 'Car',
                 'ru' => 'Автомобиль'
             ],
@@ -134,6 +157,10 @@ class PageCustomerCabinetDealsdeal extends PageCustomerCabinetDeals
                 'ru' => 'Грузовики и автобусы'
             ],
             'SelectedECU' => [
+                'en' => 'Selected ECU',
+                'ru' => 'Выбранный ECU'
+            ],
+            'ecu' => [
                 'en' => 'Selected ECU',
                 'ru' => 'Выбранный ECU'
             ],
@@ -176,115 +203,120 @@ class PageCustomerCabinetDealsdeal extends PageCustomerCabinetDeals
             'UploadFile' => [
                 'en' => 'Upload File',
                 'ru' => 'Скачать файл'
+            ],
+            'You do not have enough coins to pay for the service. You need to buy coins.' => [
+                'en' => 'You do not have enough coins to pay for the service. You need to buy coins.',
+                'ru' => 'У вас не достаточно коинов для оплаты услуги. Вам нужно докупить коины.'
+            ],
+            'egr off' => [
+                'en' => 'EGR off',
+                'ru' => 'Отключение EGR'
+            ],
+            'cat off' => [
+                'en' => 'CAT off',
+                'ru' => 'Отключение CAT'
+            ],
+            'Something went wrong' => [
+                'en' => 'Something went wrong',
+                'ru' => 'Что-то пошло не так'
+            ],
+            'If you have any questions - write!' => [
+                'en' => 'If you have any questions - write!',
+                'ru' => 'Если есть вопросы - пишите!'
             ]
         ];
     }
-    // {$this->dealSpecification['order_amount']}
-    private function transformTypeVehicle($type)
-    {
-        switch ($type) {
-            case 'Car': return'Car';
-            case 'Motorcycle' : return 'Motorcycle';
-            case 'Marine' : return 'Marine';
-            case 'Construction_agricultural_vehicles' : return 'ConstructionAgriculturalVehicle';
-            case 'Truck_bus' : return 'TruckBus';
-            default : return 'unknown';
-        }
-    }
-    private function getServiсeList(array $list, $class = null)
+    private function getMessageList()
     {
         $html = '';
-        foreach($list as $itemName => $itemValue) {
-            if ($itemValue && $itemName != 'order_item_id') {
-                $html .= "<li class='$class'>{$this->getText($this->lang, $itemName)}</li>";
-            }
-        }
-        return $html;
-    }
-    private function getMessageList(array $list, $idItem, $class = null)
-    {
-        $html = '';
-        foreach ($list as $listElem) {
+        foreach ($this->messages as $message) {
             $html .= "<li class='";
-            if ($listElem['message_from'] == 'customer') {
+            if ($message['message_from'] == 'customer') {
                 $html .= " customer-message";
-            } elseif ($listElem['message_from'] == 'provider') {
+            } elseif ($message['message_from'] == 'provider') {
                 $html .= " provider-message";
-                if (!$listElem['message_seen']) {
+                if (!$message['message_seen']) {
                     $html .= " provider-message_not-seen";
                 }
             }
-            $html .= " $class order-message'><div class='order-message__date'>{$this->transformTime($listElem['message_date'])}</div><div class='order-message__content'>{$listElem['message_content']}</div></li>";
+            else {
+                return $this->getText($this->lang, 'Something went wrong');
+            }
+            $html .= " order-messages__message order-message'><div class='order-message__date'>{$this->transformTime($message['message_date'])}</div><div class='order-message__content'>{$message['message_content']}</div></li>";
+            
         }
         $html .= "
-        <li class='$class order-textarea'>
-            <form class='order-textarea__form' action='{$this->getRequerMyself()}' method='POST'>
-                <textarea class='order-textarea__this' name='comment' placeholder='Если есть вопросы -- пишите!'></textarea>
-                <input type='hidden' name='id_item' value='$idItem'>
-                {$this->getSubmit($this->getText($this->lang, 'ButtonSend'), $this->pageName, 'order-textarea__submit')}
-            </form>
-            <form class='order-textarea__form' action='{$this->getRequerMyself()}' method='POST'>
-                {$this->getSubmit($this->getText($this->lang, 'CheckNewMessages'), $this->pageName, 'order-textarea__submit')}
-            </form>
-        </li>";
+            <li class='order-messages__message order-textarea'>
+                <form class='order-textarea__form' action='{$this->getRequerMyself()}' method='POST'>
+                    <textarea class='order-textarea__this' name='comment' placeholder='{$this->getText($this->lang, 'If you have any questions - write!')}'></textarea>
+                    {$this->getSubmit($this->getText($this->lang, 'ButtonSend'), $this->pageName, 'order-textarea__submit')}
+                </form>
+                <form class='order-textarea__form' action='{$this->getRequerMyself()}' method='POST'>
+                    {$this->getSubmit($this->getText($this->lang, 'CheckNewMessages'), $this->pageName, 'order-textarea__submit')}
+                </form>
+            </li>
+            ";
         return $html;
     }
-    private function getButtonForUploadFile($idItem)
+    private function getServiceList()
     {
-        if ($this->dealSpecification['order_status'] == 'done') {
+        $html = '';
+        foreach($this->customerOrderService as $elementCustomerOrderService) {
+            $html .= "<li class='order-services__service order-service'>{$this->getText($this->lang, $elementCustomerOrderService['service_name'])}</li>";
+        }
+        return $html;
+    }
+    private function getDataList()
+    {
+        $html = '';
+        foreach ($this->customerOrderData as $elementCustomerOrderData) {
+            $html .= "<li class='order-parameters__parameter order-parameter'>{$this->getText($this->lang, $elementCustomerOrderData['customer_order_data_name'])} - <span class='order-parameter__value'>{$this->getText($this->lang, $elementCustomerOrderData['customer_order_data_value'])}</span></li>";
+        }
+        return $html;
+    }
+    private function getButtonForUploadFile()
+    {
+        if ($this->dealSpecification['customer_order_status'] == 'done') {
             return "<form class='content__form-button form-button' method='POST' action='/uploadprovfile'>
-                        <input type='hidden' name='id_item' value='$idItem'>
                         <input type='hidden' name='Page' value='{$this->pageName}'>
                         <button class='form-button__button' type='submit'>{$this->getText($this->lang, 'UploadFile')}</button>
                     </form>";
         }
     }
-    private function getOneOrderItem($parameterArr, $serviceArr, $messageArr, $idItem)
+    private function  getOrder()
     {
         return <<<HTML
-    <ul class='content__order-parameters order-parameters'>
-        <li class='order-parameters__parameter order-parameter'>{$this->getText($this->lang, 'VehicleType')} - <span class='order-parameter__value'>{$this->getText($this->lang, $this->transformTypeVehicle($parameterArr['file_processing_vehicle_type']))}</span></li>
-        <li class='order-parameters__parameter order-parameter'>{$this->getText($this->lang, 'VehicleBrand')} - <span class='order-parameter__value'>{$parameterArr['file_processing_vehicle_brand']}</span></li>
-        <li class='order-parameters__parameter order-parameter'>{$this->getText($this->lang, 'VehicleModel')} - <span class='order-parameter__value'>{$parameterArr['file_processing_vehicle_model']}</span></li>
-        <li class='order-parameters__parameter order-parameter'>{$this->getText($this->lang, 'SelectedECU')} - <span class='order-parameter__value'>{$parameterArr['file_processing_selected_ecu']}</span></li>
-        <li class='order-parameters__parameter order-parameter'>{$this->getText($this->lang, 'PlateOfVehicle')} - <span class='order-parameter__value'>{$parameterArr['file_processing_plate_of_vehicle']}</span></li>
-        <li class='order-parameters__parameter order-parameter'>{$this->getText($this->lang, 'IDvehicle')} - <span class='order-parameter__value'>{$parameterArr['file_processing_vin_vehicle_identification_number']}</span></li>
-        <li class='order-parameters__parameter order-parameter'>{$this->getText($this->lang, 'ReadableDevice')}- <span class='order-parameter__value'>{$parameterArr['file_processing_reading_device']}</span></li>
-        <li class='order-parameters__parameter order-parameter'><span class='order-parameter__value'>{$this->getText($this->lang, 'FileIsTransferred')}</span></li>
-    </ul>
-    <h2 class='content__order-services-title'>{$this->getText($this->lang, 'OrderedServices')}</h2>
-    <ul class='content__order-services order-services'>
-        {$this->getServiсeList($serviceArr, 'order-services__service order-service')}
-    </ul>
-    <h2 class='content__order-messages-title'>{$this->getText($this->lang, 'Messages')}</h2>
-    <ul class='content__order-messages order-messages'>
-        {$this->getMessageList($messageArr, $idItem, 'order-messages__message')}
-    </ul>
-    {$this->getButtonForUploadFile($idItem)}
+        <ul class='content__order-parameters order-parameters'>
+            {$this->getDataList()}
+        </ul>
+        <h2 class='content__order-services-title'>
+            {$this->getText($this->lang, 'OrderedServices')}
+        </h2>
+        <ul class='content__order-services order-services'>
+            {$this->getServiceList()}
+        </ul>
+        <h2 class='content__order-messages-title'>
+            {$this->getText($this->lang, 'Messages')}
+        </h2>
+        <ul class='content__order-messages order-messages'>
+            {$this->getMessageList()}
+        </ul>
+        {$this->getButtonForUploadFile()}
 HTML;
-    }
-    private function getOrderItems() // надо доделать
-    {
-        $arr = $this->parametersServicesMessages;
-        $html = '';
-        foreach ($arr as $idItemName => $idItem) {
-            $html = $this->getOneOrderItem($idItem['parameter_list'], $idItem['service_list'], $idItem['message_list'], $idItemName);
-        }
-        return $html;
     }
     private function showPayButton($classNotification, $classButtonForm, $classButtonInput)
     {
-        if ($this->dealSpecification['order_status'] == 'unpaid') {
-            if ($this->dealSpecification['order_amount'] <= $this->coins) {
+        if ($this->dealSpecification['customer_order_status'] == 'unpaid') {
+            if ($this->dealSpecification['customer_order_amount'] <= $this->coins) {
 
                 $html = $this->getNormalLinkNoLang($this->getRequerMyself(), $this->getText($this->lang, 'ButtonPay'), $this->pageName, 
                             [
-                                ['name' => 'payService', 'value' => $this->dealSpecification['order_amount']]
+                                ['name' => 'payService', 'value' => $this->dealSpecification['customer_order_amount']]
                             ],
                             $classButtonForm, $classButtonInput
                         );
-            } elseif ($this->dealSpecification['order_amount'] > $this->coins) {
-                $html = "<div class='notificaiton-not-enough-coins $classNotification'>У вас не достаточно коинов для оплаты услуги. Вам нужно докупить коины.</div>";
+            } elseif ($this->dealSpecification['customer_order_amount'] > $this->coins) {
+                $html = "<div class='notificaiton-not-enough-coins $classNotification'>{$this->getText($this->lang, 'You do not have enough coins to pay for the service. You need to buy coins.')}</div>";
             } else {
                 $html = '';
             }
@@ -302,15 +334,15 @@ HTML;
         <article class="main__content content content_deal">
             <h1 class='content__title'>{$this->getText($this->lang, 'ThisIsYourDeal')}</h1>
             <ul class='content__deal-parameters deal-parameters'>
-                <li class='deal-parameters__parameter deal-parameter deal-parameter_sum'>{$this->getText($this->lang, 'TransactionAmountStart')} - <span class='deal-parameter__value deal-parameter__value_sum'>{$this->dealSpecification['order_amount']}</span> {$this->getText($this->lang, 'TransactionAmountEnd')}</li>
-                <li class='deal-parameters__parameter deal-parameter deal-parameter_date'>{$this->getText($this->lang, 'TransactionDateStart')} - <span class='deal-parameter__value deal-parameter__value_date'>{$this->transformTime($this->dealSpecification['order_date'])}</span> ({$this->getText($this->lang, 'TransactionDateEnd')})
+                <li class='deal-parameters__parameter deal-parameter deal-parameter_sum'>{$this->getText($this->lang, 'TransactionAmountStart')} - <span class='deal-parameter__value deal-parameter__value_sum'>{$this->dealSpecification['customer_order_amount']}</span> {$this->getText($this->lang, 'TransactionAmountEnd')}</li>
+                <li class='deal-parameters__parameter deal-parameter deal-parameter_date'>{$this->getText($this->lang, 'TransactionDateStart')} - <span class='deal-parameter__value deal-parameter__value_date'>{$this->transformTime($this->dealSpecification['customer_order_date'])}</span> ({$this->getText($this->lang, 'TransactionDateEnd')})
                 </li>
-                <li class='deal-parameters__parameter deal-parameter deal-parameter_status'>{$this->getText($this->lang, 'TransactionStatus')} - <span class='deal-parameter__value deal-parameter__value_status'>{$this->getText($this->lang, $this->transformDealStatus($this->dealSpecification['order_status']))}</span>
+                <li class='deal-parameters__parameter deal-parameter deal-parameter_status'>{$this->getText($this->lang, 'TransactionStatus')} - <span class='deal-parameter__value deal-parameter__value_status'>{$this->getText($this->lang, $this->transformDealStatus($this->dealSpecification['customer_order_status']))}</span>
                 {$this->showPayButton('deal-parameter__notifacation-not-enough-coins', null, 'deal-parameter__button-pay button deal-button-pay')}
                 </li>
             </ul>
             
-            {$this->getOrderItems()}
+            {$this->getOrder()}
 
         </article>
         {$this->getFacadeFooter()}

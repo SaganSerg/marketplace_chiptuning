@@ -8,7 +8,7 @@ abstract class Page
         $this->name = $name;
     }
 
-    protected function getRequerMyself()
+    protected function getRequerMyself() // Эта функция будет не нужна удалить наверное
     {
         return '/' . strtolower($this->pageName);
     }

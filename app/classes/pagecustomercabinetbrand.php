@@ -1,7 +1,7 @@
 <?php
 class PageCustomerCabinetBrand extends PageCustomerCabinet
 {
-    protected $pageName = 'Brand';
+    protected $pageName = '/brand';
     private $vehicleBrandList;
     private $vehicleType;
     private $messageChosenNothing;

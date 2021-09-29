@@ -1,7 +1,7 @@
 <?php
 class PageCustomerCabinetModel extends PageCustomerCabinet
 {
-    protected $pageName = 'Model';
+    protected $pageName = '/model';
 
     private $vehicleBrandList;
     private $vehicleType;

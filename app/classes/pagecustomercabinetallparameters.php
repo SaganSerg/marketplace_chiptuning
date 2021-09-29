@@ -1,7 +1,7 @@
 <?php
 class PageCustomerCabinetAllparameters extends PageCustomerCabinet
 {
-    protected $pageName = 'Allparameters';
+    protected $pageName = '/allparameters';
 
     private $readingDeviceList;
     private $vehicleType;
@@ -157,8 +157,15 @@ class PageCustomerCabinetAllparameters extends PageCustomerCabinet
     {
         $delimeter = ', ';
         $set = '';
+        $servicePriceListLength = count($this->servicePriceList);
+        $count = 0;
         foreach ($this->servicePriceList as $servicePrice) {
-            $set .= $servicePrice['service_name'] . $delimeter;
+            $count++;
+            if ($count < $servicePriceListLength) {
+                $set .= $servicePrice['service_name'] . $delimeter;
+            } else {
+                $set .= $servicePrice['service_name'];
+            }
         }
         return $set;
     }
@@ -185,7 +192,7 @@ class PageCustomerCabinetAllparameters extends PageCustomerCabinet
                 <div class="block-selected-file__property">{$this->getText($this->lang, 'VehicleModel')} - <span class="block-selected-file__value" id="selected-model">$this->vehicleModel</span></div>
                 <div class="block-selected-file__property">{$this->getText($this->lang, 'SelectedECU')} - <span class="block-selected-file__value" id="selected-details">$this->ecu</span></div>
             </div>
-            <form class='content__wrapper-blocks' method="POST" action='/filesent' enctype="multipart/form-data" id='form_treatment_file'>
+            <form class='content__wrapper-blocks' method="POST" action='/allparameters' enctype="multipart/form-data" id='form_treatment_file'>
                 <div class="content__block-select-options block-select-options" id="block-select-options">
                     <div class="block-select-options__option">
                         <label class="block-select-options__block">{$this->getText($this->lang, 'PlateOfVehicleOptional')}

@@ -1,44 +1,28 @@
 <?php
-class PageCustomerFacadeRegistration extends PageCustomerFacade
+class PageCustomerFacadeNewpassword extends PageCustomerFacade
 {
-    protected $pageName = '/registration';
+    protected $pageName = '/newpassword';
+    protected $customer_email;
 
     protected const INPUT_ATTRIBUTE_NAME = [
         'registration' => [
-            'tel' => 'Tel', 
-            'email' => 'Email', 
-            'valuta' => 'Valuta', 
             'pass' => 'Pass', 
             'repaetedPass' => 'RepeatedPass']
     ];
 
     public static $arrMessageNames = [
-        'Tel' => [
-            'Not11', 'NotOnly', 'Empty'
-        ],
-        'Email' => [
-            'LongToo', 'Empty', 'NotFormat', 'Exist'
-        ],
         'Pass' => [
             'Empty', 'ErrorLength', 'NotOnly'
         ],
         'RepeatedPass' => [
-            'Empty', 'NotEqual'
-        ],
-        'Valuta' => [
-            'Empty'
+            'NotEqual'
         ]
     ];
-    protected $messageTelNot11;
-    protected $messageTelNotOnly;
-    protected $messageTelEmpty;
+    
 
-    protected $messageEmailNotFormat;
-    protected $messageEmailLongToo;
-    protected $messageEmailEmpty;
-    protected $messageEmailExist;
+    
 
-    protected $massageValutaEmpty;
+   
 
     protected $messagePassEmpty;
     protected $messagePassErrorLength;
@@ -46,17 +30,17 @@ class PageCustomerFacadeRegistration extends PageCustomerFacade
 
     protected $messageRepeatedPassNotEqual;
 
-    public static $externalConditionEmailExist = false;
-
     function __construct(
         string $name,
         $customer_id, 
+        $customer_email = null,
         array $showedMessageList = []
         )
     {
         $this->dictionaryMain = $this->composeDictionaryMain();
         parent::__construct($name, $customer_id);
         $this->assignValue($showedMessageList);
+        $this->customer_email = $customer_email;
     }
 
     private function composeDictionaryMain()
@@ -219,25 +203,9 @@ class PageCustomerFacadeRegistration extends PageCustomerFacade
             $input = $_POST[$inputName];
             $length = strlen($input);
             switch($whatCheck) {
-                case 'TelEmpty':
-                case 'PassEmpty': 
-                case 'RepeatedPassEmpty':
-                case 'EmailEmpty':
-                case 'ValutaEmpty':
+               
+                case 'PassEmpty':
                     return $length == 0;
-                case 'EmailExist':
-                    return self::$externalConditionEmailExist;
-                case 'TelNot11':
-                    return  $length >=1 && $length < 11 || $length > 11;
-                case 'TelNotOnly':
-                    return preg_match('/\D/', $input) === 1;
-                case 'EmailNotFormat':
-                    if ($length > 0) {
-                        return preg_match('/^[a-zа-я0-9_\-\.]+@[a-zа-я0-9\-]+\.[a-zа-я0-9\-\.]+$/iu', $input) === 0;
-                    }
-                    return false;
-                case 'EmailLongToo':
-                    return $length > 50;
                 case 'PassErrorLength':
                         return $length >= 1 && $length < 5 || $length > 10;     
                 case 'PassNotOnly':
@@ -250,72 +218,25 @@ class PageCustomerFacadeRegistration extends PageCustomerFacade
                     throw new Exception("Методу был передан неправильный аргумент whatCheck");
             }
         }
-        if (isset($_POST['Page']) && !isset($_POST['Valuta'])) {
-            return true;
-        }
         return false;
     }
-    private function getInputTextForComposeHTML($name, $placeholder) {
-        return $this->getInput('text', $this->saveInputValue($name), $name, "form__input" , $placeholder);
-    }
+    
     private function getInputPassForComposeHTML($name) {
         return $this->getInput('password', null , $name, "form__input" , 'password');
     }
-    private function getSelectForComposeHTML()
-    {
-        $valutas = [$GLOBALS["rub"] => 'Ruble', $GLOBALS["usd"] => 'Dollar', $GLOBALS["eur"] => 'Euro'];
-        $select = "<select class='form__input' name='Valuta' size='1'>";
-        
-        if (!isset($_POST['Valuta']) || $_POST['Valuta'] === '') {
-            $select .= "<option disabled selected value='empty'>{$this->getText($this->lang, 'ChooseValutaMain')}</option>";
-        }
-        foreach ($valutas as $valuta => $valutaMark) {
-            $selected = '';
-            if (isset($_POST['Valuta']) && $_POST['Valuta'] == $valuta) {
-                $selected = 'selected';
-            }
-            $select .= "<option value='$valuta' $selected >{$this->getText($this->lang, $valutaMark . 'Main')}</option>";
-        }
-        return $select .= " </select>";
-    }
+    
     private function composeHTML() 
     {
         $registrationInput = self::INPUT_ATTRIBUTE_NAME['registration'];
         $passRegistrationInput = $registrationInput['pass'];
-        $telRegistrationInput = $registrationInput['tel'];
-        $emailRegistrationInput = $registrationInput['email'];
-        $valutaRegistrationInput = $registrationInput['valuta'];
+        
         $repaetedPassRegistrationInput = $registrationInput['repaetedPass'];
         $hiddenInputs = $this->getComposedHiddenInputs();
         return <<<HTML
         {$this->getFacadeHeader('registration', $hiddenInputs)}
-        <form class="main__form form" method="POST" action="/pay">
+        <form class="main__form form" method="POST" action="{$this->name}">
             <fieldset class="form__block-form">
                 <legend class="form__title">{$this->getText($this->lang, 'FormtitleMain')}</legend>
-                <label class="form__wrapper-input">
-                    {$this->getFormMessage('CookiesAgreeMain', $this->messageCookiesAgree)}
-                    {$this->getFormMessage('EmailNotFormatMain', $this->messageEmailNotFormat)}
-                    {$this->getFormMessage('EmailLongTooMain', $this->messageEmailLongToo)}
-                    {$this->getFormMessage('EmailEmptyMain', $this->messageEmailEmpty)}
-                    {$this->getFormMessage('EmailExistMain', $this->messageEmailExist)} 
-                    <div class="form__description">{$this->getText($this->lang, 'DiscriptionForEmailMain')}</div>
-                    {$this->getInputTextForComposeHTML($emailRegistrationInput, "mail@mail.xyz")}
-                    <span class="form__whatis">{$this->getText($this->lang, 'EmailMain')}</span>
-                </label>
-                <label class="form__wrapper-input">
-                    {$this->getFormMessage('TelNot11Main', $this->messageTelNot11)}
-                    {$this->getFormMessage('TelNotOnlyMain', $this->messageTelNotOnly)}
-                    {$this->getFormMessage('TelEmptyMain', $this->messageTelEmpty)}
-                    <div class="form__description">{$this->getText($this->lang, 'DiscriptionForTelMain')}</div>
-                    {$this->getInputTextForComposeHTML($telRegistrationInput, $this->telExample)}
-                    <span class="form__whatis">{$this->getText($this->lang, 'TelMain')}</span>
-                </label>
-                <label class="form__wrapper-input">
-                    {$this->getFormMessage('ValutaEmptyMain', $this->messageValutaEmpty)}
-                    <div class="form__description">{$this->getText($this->lang, 'DiscriptionForValutaMain')}</div>
-                    {$this->getSelectForComposeHTML()}
-                    <span class="form__whatis">{$this->getText($this->lang, 'ValutaMain')}</span>
-                </label>
                 <label class="form__wrapper-input">
                     {$this->getFormMessage('PassErrorLengthMain', $this->messagePassErrorLength)}
                     {$this->getFormMessage('PassNotOnlyMain', $this->messagePassNotOnly)}

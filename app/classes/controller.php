@@ -1,6 +1,18 @@
 <?php
 abstract class Controller
 {
+    static private function getText($lang, $place, $dictionary) // $lang -- язык вида 'en'; $place -- это название массива являющегося элементом массива $date
+    {
+        if (isset($dictionary[$place][$lang])) {
+            return $dictionary[$place][$lang];
+        }
+        // throw new Exception("Такой элемент массива не существует -- $place и $lang");
+        return $place;
+    }
+    static private function returnBackPreparedHTMLAttr($string)
+    {
+        return str_replace(' ', '_', $string);
+    }
     static private $pppp = '123456';
 
     static private function checkAnalogOr(array $arr)
@@ -69,6 +81,44 @@ abstract class Controller
         return (new PageCustomerCabinetDealsdeal($mark, $_SESSION['customer_id'], $login, $coins, $dealSpecification, $parametersServicesMessages))->getHTML();
     }
 
+    static private function getDealCard3(Model $model, string $mark)
+    {
+        if (session_status() !== 2) {
+            $GLOBALS['cookiesmanagement']->customerSessionStart();
+        }
+        $email = $model->getElements(
+            "SELECT customer_email FROM customer WHERE customer_id = ?",
+            [$_SESSION['customer_id']]
+        )[0]['customer_email'];
+        $coins = $model->getElements(
+            "SELECT customer_coins FROM customer WHERE customer_id = ?",
+            [$_SESSION['customer_id']]
+        )[0]['customer_coins'];
+        if (array_key_exists('customer_order_id', $_POST)) {
+            $_SESSION['customer_order_id'] = $_POST['customer_order_id']; // надо разобраться откуда приходит запрос с таким параметром order_id
+        } 
+        // else {
+        //     echo 'Not found в файле ' . __FILE__ . ' на строке ' . __LINE__ ;
+        //     return (new PageCustomerFacadeNotfound($mark, null))->getHTML();
+        // }
+        $dealSpecification = $model->getElements(
+            "SELECT customer_order_amount, customer_order_date, customer_order_status FROM customer_order WHERE customer_order_id = ?",
+            [$_SESSION['customer_order_id']]
+        )[0];
+        $messages = $model->getElements(
+            "SELECT message_content, message_from, message_date, message_seen FROM message WHERE customer_order_id = ?",
+            [$_SESSION['customer_order_id']]
+        );
+        $customerOrderData = $model->getElements(
+            "SELECT customer_order_data_name, customer_order_data_value FROM customer_order_data WHERE customer_order_id = ? ",
+            [$_SESSION['customer_order_id']]
+        );
+        $customerOrderService = $model->getElements(
+            "SELECT service_name FROM customer_order_service WHERE customer_order_id = ?",
+            [$_SESSION['customer_order_id']]
+        );
+        return (new PageCustomerCabinetDealsdeal($mark, $_SESSION['customer_id'], $email, $coins, $dealSpecification, $messages, $customerOrderData, $customerOrderService, $_SESSION['customer_order_id']))->getHTML();
+    } 
 
     static private function addFile(int $date, string $order_id, string $order_item_id, string $mark, Model $model, PDO $receiveBD, string $login, string $coins)
     {
@@ -121,7 +171,7 @@ abstract class Controller
             }
         }
         $path_to_file = $dirPath . '/' . $_FILES['original_file']['name'];
-        $path_to_file_WithoutRootPath = $dirPathWithoutRootPath . '/' . $_FILES['original_file'];
+        $path_to_file_WithoutRootPath = $dirPathWithoutRootPath . '/' . $_FILES['original_file']['name'];
         if ($_FILES['original_file']['size'] < $GLOBALS['fileSizeFromCustomer']) {
             if (move_uploaded_file($_FILES['original_file']['tmp_name'], $path_to_file)) {
                 $open_resurs = fopen($path_to_file, 'rb');
@@ -136,12 +186,12 @@ abstract class Controller
                             ) VALUES (?, ?, ?, ?)",
                         [
                             $customer_order_id,
-                            $data, 
+                            $date, 
                             $path_to_file_WithoutRootPath,
                             'from customer'
                         ]
                     );
-                    return self::getDealCard($receiveBD, $model, $mark); // это нужно будет передалать 
+                    return self::getDealCard3($model, $mark); // это нужно будет передалать 
                 } else {
                     // надо будет написать скрипт удаляющий ненужные папки
                     return (new PageCustomerFacadeNotfound($mark, null))->getHTML();
@@ -149,7 +199,7 @@ abstract class Controller
             } else {
                 $errorCode = $_FILES['original_file']['error'];
                 if ($errorCode === 1 || $errorCode === 2) {
-                    return (new PageCustomerCabinetBigfile($mark, $_SESSION['customer_id'], $login, $coins))->getHTML(); // надо будет переделать
+                    return (new PageCustomerCabinetBigfile($mark, $_SESSION['customer_id'], $email, $coins))->getHTML(); // надо будет переделать
                 }
                 return (new PageCustomerFacadeNotfound($mark, null))->getHTML();
             }
@@ -221,6 +271,32 @@ abstract class Controller
         }
         return (new PageCustomerFacadeNotfound($toPage, null))->getHTML();
     }
+    static function routingSimpleDealsdeals3(array $fromPageArr, $cookiesmanagement, $model)
+    {
+        $toPage = '/dealsdeals';
+        if ($_SERVER['REQUEST_METHOD'] == "POST" && array_key_exists('Page', $_POST)) {
+            foreach ($fromPageArr as $page) {
+                if ($_POST['Page'] == $page) {
+                    $cookiesmanagement->customerSessionStart();
+                    unset($_SESSION['customer_order_id']);
+                    $email = $model->getElements(
+                        "SELECT customer_email FROM customer WHERE customer_id = ?",
+                        [$_SESSION['customer_id']]
+                    )[0]['customer_email'];
+                    $coins = $model->getElements(
+                        "SELECT customer_coins FROM customer WHERE customer_id = ?",
+                        [$_SESSION['customer_id']]
+                    )[0]['customer_coins'];
+                    $attributes = $model->getElements(
+                        "SELECT customer_order_status, customer_order_date, customer_order_id, customer_order_amount FROM customer_order WHERE customer_id = ?",
+                        [$_SESSION['customer_id']]
+                    );
+                    return (new PageCustomerCabinetDealsdeals($toPage, $_SESSION['customer_id'], $email, $coins, $attributes))->getHTML();
+                }
+            }
+        }
+        return (new PageCustomerFacadeNotfound($toPage, null))->getHTML();
+    }
 
 
     static function routingSimpleHistory(array $fromPageArr, $cookiesmanagement, $model, $receiveBD)
@@ -243,6 +319,48 @@ abstract class Controller
     }
 
 
+    static function routingSimpleHistory3(array $fromPageArr, $cookiesmanagement, $model)
+    {
+        $toPage = '/history';
+        if ($_SERVER['REQUEST_METHOD'] == "POST" && array_key_exists('Page', $_POST)) {
+            foreach ($fromPageArr as $page) {
+                if ($_POST['Page'] == $page) {
+                    $cookiesmanagement->customerSessionStart();
+                    unset($_SESSION['customer_order_id']);
+                    $email = $model->getElements(
+                        "SELECT customer_email FROM customer WHERE customer_id = ?",
+                        [$_SESSION['customer_id']]
+                    )[0]['customer_email'];
+                    $coins = $model->getElements(
+                        "SELECT customer_coins FROM customer WHERE customer_id = ?",
+                        [$_SESSION['customer_id']]
+                    )[0]['customer_coins'];
+                    // $buyList = $model->getElementsByOneParameter($receiveBD, '*', 'buy_coins', 'customer_id', $_SESSION['customer_id']);
+                    $transactions = $model->getElements(
+                        "SELECT coin_transaction_id, coin_transaction_date, coin_transaction_sum, coin_transaction_status FROM coin_transaction WHERE customer_id = ?",
+                        [$_SESSION['customer_id']]
+                    );
+                    $buyList = [];
+                    foreach ($transactions as $transaction) {
+                        $customer_order_id = $model->getElements(
+                            "SELECT customer_order_id FROM deal_payment WHERE coin_transaction_id = ?",
+                            [$transaction['coin_transaction_id']]
+                        );
+                        $buyList[] = [
+                            'coin_transaction_id' => $transaction['coin_transaction_id'],
+                            'coin_transaction_date' => $transaction['coin_transaction_date'],
+                            'coin_transaction_sum' => $transaction['coin_transaction_sum'],
+                            'coin_transaction_status' => $transaction['coin_transaction_status'],
+                            'customer_order_id' => $customer_order_id
+                        ];
+                    }
+                    return (new PageCustomerCabinetHistory($toPage, $_SESSION['customer_id'], $email, $coins, $buyList))->getHTML();
+                }
+            }
+        }
+        return (new PageCustomerFacadeNotfound($toPage, null))->getHTML();
+    }
+
     static function routingSimpleProfile(array $fromPageArr, $cookiesmanagement, $model, $receiveBD)
     {
         $toPage = 'Profile';
@@ -262,6 +380,41 @@ abstract class Controller
                         'Valuta' => $valuta
                     ];
                     return (new PageCustomerCabinetProfile($toPage, $_SESSION['customer_id'], $login, $coins, $arrProfile))->getHTML();
+                }
+            }
+        }
+        return (new PageCustomerFacadeNotfound($toPage, null))->getHTML();
+    }
+
+    static function routingSimpleProfile3(array $fromPageArr, $cookiesmanagement, $model)
+    {
+        $toPage = '/profile';
+        if ($_SERVER['REQUEST_METHOD'] == "POST" && array_key_exists('Page', $_POST)) {
+            foreach ($fromPageArr as $page) {
+                if ($_POST['Page'] == $page) {
+                    $cookiesmanagement->customerSessionStart();
+                    $email = $model->getElements(
+                        "SELECT customer_email FROM customer WHERE customer_id = ?",
+                        [$_SESSION['customer_id']]
+                    )[0]['customer_email'];
+                    $coins = $model->getElements(
+                        "SELECT customer_coins FROM customer WHERE customer_id = ?",
+                        [$_SESSION['customer_id']]
+                    )[0]['customer_coins'];
+                    $tel = $model->getElements(
+                        "SELECT customer_telephone FROM customer WHERE customer_id = ?",
+                        [$_SESSION['customer_id']]
+                    )[0]['customer_telephone'];
+                    $valuta = $model->getElements(
+                        "SELECT customer_valuta FROM customer WHERE customer_id = ?",
+                        [$_SESSION['customer_id']]
+                    )[0]['customer_valuta'];
+                    $arrProfile = [
+                        'Tel' => $tel,
+                        'Valuta' => $valuta,
+                        'Email' => $email
+                    ];
+                    return (new PageCustomerCabinetProfile($toPage, $_SESSION['customer_id'], $email, $coins, $arrProfile))->getHTML();
                 }
             }
         }
@@ -372,10 +525,22 @@ abstract class Controller
         $valutaValues = $model->getValuta($receiveBD);
         return (new PageProviderValuta($mark, $valutaValues))->getHTML();
     }
+    static function getCustomerPasswordRecoveryId($model, $requestUri)
+    {
+        $urlList = $model->getElements(
+            "SELECT customer_password_recovery_id FROM customer_password_recovery WHERE customer_password_recovery_counting < 1 AND customer_password_recovery_url = ? ORDER BY customer_password_recovery_id DESC",
+            [$requestUri]
+        );
+            return (array_key_exists(0, $urlList)) ? $urlList[0]['customer_password_recovery_id'] : null;
+    }
     static function getPage()
     {
         try {
-            // $mark = ($_SERVER['REQUEST_URI']);
+            $model = new Model();
+            $receiveBD = $model->appDB();
+            $customerPasswordRecoveryId = self::getCustomerPasswordRecoveryId($model, $_SERVER['REQUEST_URI']);
+            $customerPasswordRecoveryUrl = ($customerPasswordRecoveryId) ? $_SERVER['REQUEST_URI'] : '/wronglink';
+            // echo $customerPasswordRecoveryUrl . '<br>';
             $mark = 'Notfound';
             switch ($_SERVER['REQUEST_URI']) {
                 case '':
@@ -383,69 +548,90 @@ abstract class Controller
                 case '/index':
                 case '/index.php':
                 case '/index.html':
-                    $mark = 'Index';
+                    $mark = '/index';
                 break;
                 case '/pay':
-                    $mark = "Pay";
+                    $mark = "/pay";
                     break;
                 case '/registration':
-                    $mark = 'Registration';
+                    $mark = '/registration';
                 break;
                 case '/treatment':
-                    $mark = 'Treatment';
+                    $mark = '/treatment';
                 break;
                 case '/brand':
-                    $mark = 'Brand';
+                    $mark = '/brand';
                 break;
                 case '/model':
-                    $mark = 'Model';
+                    $mark = '/model';
                 break;
                 case '/ecu':
-                    $mark = 'Ecu';
+                    $mark = '/ecu';
                 break;
                 case '/allparameters':
-                    $mark = 'Allparameters';
+                    $mark = '/allparameters';
                 break;
                 case '/dealsdeal':
-                    $mark = 'Dealsdeal';
+                    $mark = '/dealsdeal';
                 break;
+                case '/dealsdeals':
+                    $mark = '/dealsdeals';
+                break;
+                case '/history':
+                    $mark = '/history';
+                break;
+                case '/profile':
+                    $mark = '/profile';
+                break;
+                case '/wronglink':
+                    $mark = '/wronglink';
+                break;
+                case '/rememberpassword':
+                    $mark = '/rememberpassword';
+                break;
+                case '/sentmail':
+                    $mark = '/sentmail';
+                break;
+                case $customerPasswordRecoveryUrl :
+                    $mark = $customerPasswordRecoveryUrl;
+                break;
+                
             }
-            $model = new Model();
-            $receiveBD = $model->appDB();
+            // echo $mark . '<br>';
             $cookiesmanagement = $GLOBALS['cookiesmanagement'];
             $arrAllCustomerPage = [
-                'About',
-                'Index',
-                'Registration',
-                'Pay',
-                'Bigfile',
-                'Dealsdeals',
-                'Dealsdeal',
-                'History',
-                'Profile',
-                'Profilenotupdated',
-                'Profileupdated',
-                'Treatment',
-                'Notfound',
-                'Termsuse',
-                'Contacts'
+                '/about',
+                '/index',
+                '/registration',
+                '/pay',
+                '/bigfile',
+                '/dealsdeals',
+                '/dealsdeal',
+                '/history',
+                '/profile',
+                '/profilenotupdated',
+                '/profileupdated',
+                '/treatment',
+                '/notfound',
+                '/termsuse',
+                '/contacts'
             ];
             $arrFacadeCustomerPage = [
-                'About',
-                'Index',
-                'Registration',
-                'Notfound',
-                'Termsuse',
-                'Contacts'
+                '/about',
+                '/index',
+                '/registration',
+                '/notfound',
+                '/termsuse',
+                '/contacts'
             ];
-            if ($mark == 'Index') {
+            if ($mark == '/index') {
                 if ($_SERVER['REQUEST_METHOD'] == "GET" || $_SERVER['REQUEST_METHOD'] == "POST") {
                     return (new PageCustomerFacadeIndex($mark, null))->getHTML();
                 }
                 return (new PageCustomerFacadeNotfound($mark, null))->getHTML();
             }
-            if ($mark == 'Pay') {
-                if (self::checkMethodPostAndPageName('Registration')) {
+            if ($mark == '/pay') {
+                if (self::checkMethodPostAndPageName('/registration')) {
                     PageCustomerFacadeRegistration::$externalConditionEmailExist = $model->checkEmail($_POST['Email']);
                     $arrRegistrationMessages = PageCustomerFacadeRegistration::getInputNameList();
                     if (self::checkAnalogOr($arrRegistrationMessages) )   {
@@ -462,10 +648,10 @@ abstract class Controller
                 if (self::checkMethodPostAndPageName('Pay')) {
                     $coins = (float) $model->cleaningDataForm($_POST['coins']);
                     $cookiesmanagement->customerSessionStart();
-                    $model->updateCoins($coins, $_SESSION['customer_id']);
+                    $model->updateCoins($coins, $_SESSION['customer_id'], 'putOnCoinAccount');
                     return self::returnPageCustomerCabinetPayWithoutStaingId($receiveBD, $mark, $model);
                 }
-                if (self::checkMethodPostAndPageName('Index')) {
+                if (self::checkMethodPostAndPageName('/index')) {
                     PageCustomerFacadeIndex::$externalConditionEmailNotExist = !$model->checkEmail($_POST['Email']);
                     PageCustomerFacadeIndex::$externalConditionPassWrong = !$model->checkPass($_POST['Email'], $_POST['Pass']);
                     $arrIndexMessages = PageCustomerFacadeIndex::getInputNameList();
@@ -474,79 +660,20 @@ abstract class Controller
                     }
                     return self::returnPageCustomerCabinetPayWithStaingId($receiveBD, $mark, $_POST['Email'], $_POST['Pass'], $model, $cookiesmanagement);
                 }
-                $fromPageArr = ['Dealsdeals', 'Dealsdeal', 'Treatment', 'Bigfile', 'Profile', 'Profilenotupdated', 'Profileupdated', 'History' ];
+                $fromPageArr = ['/dealsdeals', '/dealsdeal', '/treatment', '/bigfile', '/profile', '/profilenotupdated', 'Profileupdated', 'History' ];
                 return self::routingSimplePayPage($fromPageArr, $cookiesmanagement, $model, $receiveBD);
             }
-            if ($mark == "Registration") {
-                if (self::checkMethodPostAndPageName('Index')) {
+            if ($mark == "/registration") {
+                if (self::checkMethodPostAndPageName('/index')) {
                     return (new PageCustomerFacadeIndex($mark, null))->getHTML();
                 }
-                if (self::checkMethodPostAndPageName('Registration')) {
+                if (self::checkMethodPostAndPageName('/registration')) {
                     return (new PageCustomerFacadeRegistration($mark, null))->getHTML();
                 }
                 return (new PageCustomerFacadeIndex($mark, null))->getHTML();
             }
-            if ($mark == 'Treatment') {
-                if (self::checkMethodPostAndPageName('Treatment')) {
-                    $order_status = 'unpaid';
-                    $date = time();
-                    $servicesArr = PageCustomerCabinetTreatment::$listServices[$_POST['vehicle_type']];
-                    $parameterVehicleTypeArr = [];
-                    foreach($servicesArr as $service) {
-                        $service = strtolower($service);
-                        $serviceValue = array_key_exists($service, $_POST) ? $_POST[$service] : 0;
-                        $parameterVehicleTypeArr['file_processing_' . strtolower($_POST['vehicle_type']) . '_' . $service] = $serviceValue;
-                    }
-                    $processed_comment = nl2br(htmlspecialchars($_POST['comment'])); 
-                    $userType =  'customer';
-                    $message_seen = 0;
-                    $fileAddress = 'no_file'; // это строка будет хранится в поле адреса, пока файл не пришел
-                    $cookiesmanagement->customerSessionStart();
-                    $coins = $model->getCustomerElementById($receiveBD, 'customer_coins', $_SESSION['customer_id']);
-                    $login = $model->getCustomerElementById($receiveBD, 'customer_login', $_SESSION['customer_id']);
-                    $idList = $model->addOrder(
-                        $receiveBD,
-                        $_SESSION['customer_id'],
-                        $_POST['total_sum'],
-                        $date,
-                        $order_status,
-                        $processed_comment,
-                        $userType,
-                        $message_seen,
-                        $_POST['vehicle_type'],
-                        $_POST['vehicle_brand'],
-                        $_POST['vehicle_model'],
-                        $_POST['vehicle_details'],
-                        $_POST['plate_vehicle'],
-                        $_POST['vin_vehicle_identification_number'],
-                        $_POST['reading_device'],
-                        $fileAddress,
-                        $parameterVehicleTypeArr
-                    );
-                    $order_item_id = $idList['order_item_id'];
-                    $order_id = $idList['order_id'];
-                    $_SESSION['order_item_id'] = $order_item_id;
-                    $_SESSION['order_id'] = $order_id;
-                    return self::addFile($date, $order_id, $order_item_id, $mark, $model, $receiveBD, $login, $coins);
-                }
-                if (self::checkMethodPostAndPageName('Bigfile')) {
-                    $cookiesmanagement->customerSessionStart();
-                    $coins = $model->getCustomerElementById($receiveBD, 'customer_coins', $_SESSION['customer_id']);
-                    $login = $model->getCustomerElementById($receiveBD, 'customer_login', $_SESSION['customer_id']);
-                    $order_item_id = $_SESSION['order_item_id'];
-                    $order_id = $_SESSION['order_id'];
-                    $contentType = explode(';', apache_request_headers()['Content-Type'])[0];
-                    if ('multipart/form-data' == $contentType) {
-                        $date = time();
-                        return self::addFile($date, $order_id, $order_item_id, $mark, $model, $receiveBD, $login, $coins);
-                    }
-                    return (new PageCustomerCabinetTreatment($mark, $_SESSION['customer_id'], $login, $coins))->getHTML();
-                }
-                $fromPageArr = ['Dealsdeals', 'Dealsdeal', 'History', 'Profile', 'Profilenotupdated', 'Profileupdated', 'Pay'];
-                return self::routingSimpleCabinetPage($fromPageArr, $mark, $model, $receiveBD);
-            }
-            if ($mark == 'Treatment') {
-                if (self::checkMethodPostAndPageName('Pay')) {
+            if ($mark == '/treatment') {
+                if (self::checkMethodPostAndPageName('/pay')) {
                     $conditionIdList = $model->getElements(
                         'SELECT condition_id_id FROM condition_id WHERE condition_id_works = 1',
                         []
@@ -581,8 +708,8 @@ abstract class Controller
                     return (new PageCustomerCabinetTreatment($mark, $_SESSION['customer_id'], $email, $coins, $dataNameArr))->getHTML();
                 }
             }
-            if ($mark == 'Brand') {
-                if (self::checkMethodPostAndPageName('Treatment')) {
+            if ($mark == '/brand') {
+                if (self::checkMethodPostAndPageName('/treatment')) {
                     if (array_key_exists('vehicle_type', $_POST) && $_POST['vehicle_type'] != null) {
                         // $conditionIdList = $model->getElements(
                         //     'SELECT condition_id_id FROM condition_id WHERE condition_id_works = 1',
@@ -656,8 +783,8 @@ abstract class Controller
                     return (new PageCustomerCabinetTreatment($mark, $_SESSION['customer_id'], $email, $coins, $dataNameArr, true))->getHTML();
                 }
             }
-            if ($mark == 'Model') {
-                if (self::checkMethodPostAndPageName('Brand')) {
+            if ($mark == '/model') {
+                if (self::checkMethodPostAndPageName('/brand')) {
                     if (array_key_exists('vehicle_brand', $_POST) && $_POST['vehicle_brand'] != null) {
                         // $conditionIdList = $model->getElements(
                         //     'SELECT condition_id_id FROM condition_id WHERE condition_id_works = 1',
@@ -731,8 +858,8 @@ abstract class Controller
                     return (new PageCustomerCabinetBrand($mark, $_SESSION['customer_id'], $email, $coins, $dataNameArr, $_POST['vehicle_type']))->getHTML();
                 }
             }
-            if ($mark == 'Ecu') {
-                if (self::checkMethodPostAndPageName('Model')) {
+            if ($mark == '/ecu') {
+                if (self::checkMethodPostAndPageName('/model')) {
                     if (array_key_exists('vehicle_model', $_POST) && $_POST['vehicle_model'] != null) {
                         // $conditionIdList = $model->getElements(
                         //     'SELECT condition_id_id FROM condition_id WHERE condition_id_works = 1',
@@ -809,8 +936,8 @@ abstract class Controller
                     return (new PageCustomerCabinetModel($mark, $_SESSION['customer_id'], $email, $coins, $dataNameArr, $_POST['vehicle_type'], $_POST['vehicle_brand'], true))->getHTML();
                 }
             }
-            if ($mark == 'Allparameters') {
-                if (self::checkMethodPostAndPageName('Ecu')) {
+            if ($mark == '/allparameters') {
+                if (self::checkMethodPostAndPageName('/ecu')) {
                     if (array_key_exists('ecu', $_POST) && $_POST['ecu'] != null) {
                         $conditioinIdWorks = $model->getOneElementArr(
                             "SELECT condition_id_id FROM condition_id WHERE condition_id_works",
@@ -894,7 +1021,7 @@ abstract class Controller
                     )[0]['customer_coins'];
                     return (new PageCustomerCabinetEcu($mark, $_SESSION['customer_id'], $email, $coins, $dataNameArr, $_POST['vehicle_type'], $_POST['vehicle_brand'], $_POST['vehicle_model']))->getHTML();
                 }
-                if (self::checkMethodPostAndPageName('Allparameters')) {
+                if (self::checkMethodPostAndPageName('/allparameters')) {
                     $service_type_name = 'file treatment';
 
                     $order_status = 'unpaid';
@@ -902,12 +1029,14 @@ abstract class Controller
                     $service_type_id = $model->getElements(
                         "SELECT service_type_id FROM service_type WHERE service_type_name = ?",
                         [$service_type_name]
-                    );
+                    )[0]['service_type_id'];
+
                     if (!array_key_exists('total_sum', $_POST)) {
                         return (new PageCustomerFacadeNotfound($mark, null))->getHTML();
                     }
                     if ($_POST['total_sum'] < 1) {
                         // здесь должна подтянуться страница выдачи allParameters
+                        return 'total sum < 1';
                     }
                     $customer_order_amount = $_POST['total_sum'];
                      
@@ -930,6 +1059,7 @@ abstract class Controller
                             $order_status
                         ]
                     );
+                    $_SESSION['customer_order_id'] = $customer_order_id;
                     if (array_key_exists('comment', $_POST) && $_POST['comment'] != null) {
                         $message_content = $_POST['comment'];
                         $message_from = 'customer';
@@ -984,36 +1114,48 @@ abstract class Controller
                     $stringOfServices = $_POST['ServiceSet'];
                     $arrOfServices = explode(', ', $stringOfServices);
                     foreach ($arrOfServices as $service) {
-                        if (array_key_exists($service, $_POST) && $_POST[$service] === 'on') {
+                        $prepearedServiceName = self::returnBackPreparedHTMLAttr($service);
+                        if (array_key_exists($prepearedServiceName, $_POST) && $_POST[$prepearedServiceName] === 'on') {
                             $model->addElements(
                                 "INSERT INTO customer_order_service (customer_order_id, service_name) VALUES (?, ?)",
                                 [$customer_order_id, $service]
                             );
                         }
                     }
-                    
+                    // c emeil и coins надо будет разобраться во вложенных функциях
+                    $email = $model->getElements(
+                        "SELECT customer_email FROM customer WHERE customer_id = ?",
+                        [$_SESSION['customer_id']]
+                    )[0]['customer_email'];
+                    $coins = $model->getElements(
+                        "SELECT customer_coins FROM customer WHERE customer_id = ?",
+                        [$_SESSION['customer_id']]
+                    )[0]['customer_coins'];
+                    return self::addFile3($date, $customer_order_id, $mark, $model, $email, $coins);
                 }
             }
-            if ($mark == 'Dealsdeals') {
-                if (self::checkMethodPostAndPageName('Dealsdeals')) {
-                    return self::getDealCard($receiveBD, $model, $mark);
-                }
-                $fromPageArr = ['Pay', 'Dealsdeal', 'Treatment', 'Profile', 'Profilenotupdated', 'Profileupdated', 'History', 'Bigfile'];
-                return self::routingSimpleDealsdeals($fromPageArr, $cookiesmanagement, $model, $receiveBD);
+            if ($mark == '/dealsdeals') {
+                $fromPageArr = ['/pay', '/dealsdeal', '/treatment', '/profile', '/profilenotupdated', '/profileupdated', '/history', '/bigfile'];
+                return self::routingSimpleDealsdeals3($fromPageArr, $cookiesmanagement, $model);
             }
-            if ($mark == 'Dealsdeal') {
-                if (self::checkMethodPostAndPageName('Dealsdeal')) {
+            if ($mark == '/dealsdeal') {
+                if (self::checkMethodPostAndPageName('/dealsdeal')) {
                     $cookiesmanagement->customerSessionStart();
                     if (array_key_exists('payService', $_POST)) {
-                        $status = $model->getElementsByOneParameterWithNameArr($receiveBD, 'order_status', 'orders', 'order_id', $_SESSION['order_id'], 'order_id')[0]['order_status'];
+                        $status = $model->getElements(
+                            "SELECT customer_order_status FROM customer_order WHERE customer_order_id = ?",
+                            [$_SESSION['customer_order_id']]
+                        )[0]['customer_order_status'];
                         if ('unpaid' == $status) {
-                            $model->updateCoins((-$_POST['payService']), $_SESSION['customer_id']);
-                            $model->updateElementByUniqueParameter($receiveBD,  'orders', 'order_status', 'paid', 'order_id', $_SESSION['order_id']);
-                            $model->addElement($receiveBD, 'pay_order', [
-                                'order_id' => $_SESSION['order_id'],
-                                'pay_order_date' => time(),
-                                'pay_order_sum' => $_POST['payService']
-                            ]);
+                            $coin_transaction_id = $model->updateCoins((-$_POST['payService']), $_SESSION['customer_id'], 'payDeal');
+                            $model->updateElements(
+                                "UPDATE customer_order SET customer_order_status = 'paid' WHERE customer_order_id = ?",
+                                [$_SESSION['customer_order_id']]
+                            );
+                            $model->addElements(
+                                "INSERT INTO deal_payment (coin_transaction_id, customer_order_id) VALUES (?, ?)",
+                                [$coin_transaction_id, $_SESSION['customer_order_id']]
+                            );
                         }
                     }
                     if (array_key_exists('comment', $_POST)) {
@@ -1025,18 +1167,20 @@ abstract class Controller
                             'message_seen' => 0,
                         ]);
                     }
-                    return self::getDealCard($receiveBD, $model, $mark);
+                    return self::getDealCard3($model, $mark);
+                }
+                if (self::checkMethodPostAndPageName('/dealsdeals')) {
+                    return self::getDealCard3($model, $mark);
                 }
                 return (new PageCustomerFacadeNotfound($mark, null))->getHTML();
             }
-            if ($mark == 'History') {
-                $fromPageArr = ['Pay', 'Dealsdeal', 'Treatment', 'Profile', 'Profilenotupdated', 'Profileupdated', 'History', 'Bigfile', 'Dealsdeals'];
-                return self::routingSimpleHistory($fromPageArr, $cookiesmanagement, $model, $receiveBD);
+            if ($mark == '/history') {
+                $fromPageArr = ['/pay', '/dealsdeal', '/treatment', '/profile', '/profilenotupdated', '/profileupdated', '/history', '/bigfile', '/dealsdeals'];
+                return self::routingSimpleHistory3($fromPageArr, $cookiesmanagement, $model);
 
             }
-            if ($mark == 'Profile') {
-                if (self::checkMethodPostAndPageName('Profile')) {
-                    PageCustomerCabinetProfile::$externalConditionLoginExist = $model->checkLogin($receiveBD, $_POST['Login']);
+            if ($mark == '/profile') {
+                if (self::checkMethodPostAndPageName('/profile')) {
                     $arrProfileInputContent = PageCustomerCabinetProfile::getInputNameList();
                     $arrProfileMessage = [];
                     foreach (PageCustomerCabinetProfile::$arrMessageNames as $prefix => $postfixList) {
@@ -1050,64 +1194,189 @@ abstract class Controller
                         }
                     }
                     $cookiesmanagement->customerSessionStart();
-                    $coins = $model->getCustomerElementById($receiveBD, 'customer_coins', $_SESSION['customer_id']);
-                    $login = $model->getCustomerElementById($receiveBD, 'customer_login', $_SESSION['customer_id']);
+                    $email = $model->getElements(
+                        "SELECT customer_email FROM customer WHERE customer_id = ?",
+                        [$_SESSION['customer_id']]
+                    )[0]['customer_email'];
+                    $coins = $model->getElements(
+                        "SELECT customer_coins FROM customer WHERE customer_id = ?",
+                        [$_SESSION['customer_id']]
+                    )[0]['customer_coins'];
                     if ( self::checkAnalogOr($arrProfileMessage) )   {
-                        $tel = $model->getCustomerElementById($receiveBD, 'customer_telephone', $_SESSION['customer_id']);
-                        $email = $model->getCustomerElementById($receiveBD, 'customer_email', $_SESSION['customer_id']);
-                        $valuta = $model->getCustomerElementById($receiveBD, 'customer_valuta', $_SESSION['customer_id']);
+                        $tel = $model->getElements(
+                            "SELECT customer_telephone FROM customer WHERE customer_id = ?",
+                            [$_SESSION['customer_id']]
+                        )[0]['customer_telephone'];
+                        $valuta = $model->getElements(
+                            "SELECT customer_valuta FROM customer WHERE customer_id = ?",
+                            [$_SESSION['customer_id']]
+                        );
                         $arrProfile = [
-                            'Login' => $login,
                             'Tel' => $tel,
-                            'Email' => $email,
                             'Valuta' => $valuta
                         ];
-                        return (new PageCustomerCabinetProfile($mark, $_SESSION['customer_id'], $login, $coins, $arrProfile, $arrProfileMessage))->getHTML();
+                        return (new PageCustomerCabinetProfile($mark, $_SESSION['customer_id'], $email, $coins, $arrProfile, $arrProfileMessage))->getHTML();
                     }
                     if (count($arrProfileMessage) == 0) {
                         return (new PageCustomerCabinetProfilenotupdated($mark, $_SESSION['customer_id'], $login, $coins, $arrProfileMessage))->getHTML();
                     }
                     $updatingParameters = [
-                        'Login' => 'customer_login', 
-                        'Lang' => 'customer_language', 
+                        // 'Lang' => 'customer_language', 
                         'Tel' => 'customer_telephone',
-                        'Email' => 'customer_email', 
-                        'Valuta' => 'customer_valuta', 
-                        'Pass' => 'customer_password'
+                        'Valuta' => 'customer_valuta'
                     ];
                     foreach ($updatingParameters as $parameterName => $bdParameterName) {
                         if (array_key_exists($parameterName, $_POST) && $_POST[$parameterName] != '') {
-                            $model->updateCustomerElementById($receiveBD, $bdParameterName, $_POST[$parameterName], $_SESSION['customer_id']);
+                            // $model->updateCustomerElementById($receiveBD, $bdParameterName, $_POST[$parameterName], $_SESSION['customer_id']);
+                            $model->updateElements(
+                                "UPDATE customer SET ? = ? WHERE customer_id = ?",
+                                [$bdParameterName, $_POST[$parameterName], $_SESSION['customer_id']]
+                            );
                         }
                     }
-                    $login = $model->getCustomerElementById($receiveBD, 'customer_login', $_SESSION['customer_id']);
-                    return (new PageCustomerCabinetProfileupdated($mark, $_SESSION['customer_id'], $login, $coins))->getHTML();
+                    return (new PageCustomerCabinetProfileupdated($mark, $_SESSION['customer_id'], $email, $coins))->getHTML();
                 }
-                $fromPageArr = ['Pay', 'Dealsdeal', 'Treatment', 'Profilenotupdated', 'Profileupdated', 'History', 'Bigfile', 'Dealsdeals'];
-                return self::routingSimpleProfile($fromPageArr, $cookiesmanagement, $model, $receiveBD);
+                $fromPageArr = ['/pay', '/dealsdeal', '/treatment', '/profilenotupdated', '/profileupdated', '/history', '/bigfile', '/dealsdeals'];
+                return self::routingSimpleProfile3($fromPageArr, $cookiesmanagement, $model);
             }
-            if ($mark == 'Uploadprovfile') {
-                if (self::checkMethodPostAndPageName('Dealsdeal')) {
+            if ($mark == '/uploadprovfile') {
+                if (self::checkMethodPostAndPageName('/dealsdeal')) {
                     if (array_key_exists('id_item', $_POST)) {
                         return self::uploadFile($mark, $receiveBD, $model, $_POST['id_item'], 'treated_file');
                         
                     } 
                 }
             }
+            if ($mark == '/rememberpassword') {
+                if (self::checkMethodPostAndPageName('/index')) {
+                    return (new PageCustomerFacadeRememberpassword($mark, null))->getHTML();
+                }
+            }
+            if ($mark == '/sentmail') {
+                if (self::checkMethodPostAndPageName('/rememberpassword')) {
+                    $arrRegistrationMessages = PageCustomerFacadeRememberpassword::getInputNameList();
+                    if (self::checkAnalogOr($arrRegistrationMessages) )   {
+                        return (new PageCustomerFacadeRememberpassword($mark, null, $arrRegistrationMessages))->getHTML();
+                    }
+                    $arrPhrases = [
+                        'We cannot provide you with a link to reset your password, since the email you specified is not registered in our service' => [
+                            'en' => 'We cannot provide you with a link to reset your password, since the email you specified is not registered in our service',
+                            'ru' => 'Мы не можем предоставить Вам ссылку на восстановление пароля, так как указанная Вами электронная почта не зарегистрирована в нашем сервисе'
+                        ],
+                        'Password recovery' => [
+                            'en' => 'Password recovery',
+                            'ru' => 'Восстаноление пароля'
+                        ],
+                        'Chip tuning' => [
+                            'en' => 'Chip tuning',
+                            'ru' => 'Чип-тюнинг'
+                        ],
+                        "In order to recover your password, you need to follow" => [
+                            'en' => 'In order to recover your password, you need to follow',
+                            'ru' => 'Для того, чтобы восстановить пароль, Вам нужно перейти'
+                        ],
+                        'the link' => [
+                            'en' => 'the link',
+                            'ru' => 'ссылка'
+                        ]
+                    ];
+                    $isExistEmail = $model->checkEmail($_POST['Email']);
+                    $lang = $_POST['lang'];
+                    $to = $_POST['Email'];
+                    $headers[] = 'MIME-Version: 1.0';
+                    $headers[] = 'Content-type: text/html; charset=iso-8859-1';
+                    $subject = self::getText($lang, 'Password recovery', $arrPhrases);
+                    $headers[] = 'From: .' . self::getText($lang, 'Chip tuning', $arrPhrases) . '<' . $GLOBALS['ourMail'] . '>';
+                    if (!$isExistEmail) {
+                        $message = "
+                        <html>
+                        <head>
+                        <title>" . self::getText($lang, 'Password recovery', $arrPhrases). "</title>
+                        </head>
+                        <body>
+                        <h1>" . self::getText($lang, 'Password recovery', $arrPhrases) . "</h1>
+                        <p>" . self::getText($lang, 'We cannot provide you with a link to reset your password, since the email you specified is not registered in our service', $arrPhrases) . "</p>
+                        </body>
+                        </html>
+                        ";
+                    } else {
+                        $date = time();
+                        $customer_id = $model->getElements(
+                            "SELECT customer_id FROM customer WHERE customer_email = ?",
+                            [$_POST['Email']]
+                        )[0]['customer_id'];
+                        $customer_password_recovery_url = '/' . $date . '_' . $customer_id;
+                        $url = $GLOBALS['domain'] . $customer_password_recovery_url;
+                        
+                        $customer_password_recovery_id = $model->addElements(
+                            "INSERT INTO customer_password_recovery (
+                                customer_password_recovery_url,
+                                customer_password_recovery_date,
+                                customer_id
+                                ) VALUES (?, ?, ?)", 
+                            [$customer_password_recovery_url,  $date, $customer_id]
+                        );
+                        $message = "
+                        <html>
+                        <head>
+                        <title>" . self::getText($lang, 'Password recovery', $arrPhrases) . "</title>
+                        </head>
+                        <body>
+                        <h1>" . self::getText($lang, 'Password recovery', $arrPhrases) . "</h1>
+                        <p>" . self::getText($lang, 'In order to recover your password, you need to follow', $arrPhrases) . "<a href='$url'>" . self::getText($lang, 'the link', $arrPhrases) . "</a></p>
+                        </body>
+                        </html>
+                        ";
+                    }
+                    mail($to, $subject, $message, implode("\r\n", $headers));
+                    return (new PageCustomerFacadeSentmail($mark, null))->getHTML();
+                }
+                if (self::checkMethodPostAndPageName('/sentmail')) {
+                    return (new PageCustomerFacadeSentmail($mark, null))->getHTML();
+                }
+            }
+            
+            if ($mark == $customerPasswordRecoveryUrl) {
+                $customer_id = $model->getElements(
+                    "SELECT customer_id FROM customer_password_recovery WHERE customer_password_recovery_id = ?",
+                    [$customerPasswordRecoveryId]
+                )[0]['customer_id'];
+                if ($_SERVER['REQUEST_METHOD'] == "GET") {
+                    // $showMessageList = PageCustomerFacadeRegistration::getInputNameList();
+                    return (new PageCustomerFacadeNewpassword($mark, $customer_id))->getHTML();
+                }
+                if (self::checkMethodPostAndPageName('/newpassword')) {
+                    $showMessageList = PageCustomerFacadeNewpassword::getInputNameList();
+                    $customer_email = $model->getElements(
+                        "SELECT customer_email FROM customer WHERE customer_id = ?",
+                        [$customer_id]
+                    )[0]['customer_email'];
+                    if (self::checkAnalogOr($showMessageList)) {
+                        return (new PageCustomerFacadeNewpassword($mark, $customer_id, $customer_email, $showMessageList))->getHTML();
+                    }
+                    $pass = $model->cleaningDataForm($_POST['Pass']);
+                    $kk = $model->updatePass($pass, $customer_id);
+                    if ($kk != 1) {
+                        return (new PageCustomerFacadeNotfound($mark, null))->getHTML();
+                    }
+                    return self::returnPageCustomerCabinetPayWithStaingId($receiveBD, $mark, $customer_email, $pass, $model, $cookiesmanagement);
+                    
+                }
+            }
 
 // админская часть 
 
-            if ($mark == 'Gate') {
+            if ($mark == '/gate') {
                 if ($_SERVER['REQUEST_METHOD'] == "GET") {
                     return (new PageProviderGate($mark))->getHTML();
                 }
                 return (new PageCustomerFacadeNotfound($mark, null))->getHTML();
             }
-            if ($mark == 'Admin') {
-                $pages = ['Admin', 'Deal', 'Deals', 'Gate', 'Valuta'];
+            if ($mark == '/admin') {
+                $pages = ['/admin', '/deal', '/deals', '/gate', '/valuta'];
                 foreach ($pages as $page) {
                     if (self::checkMethodPostAndPageName($page)) {
-                        if ($page == 'Gate') {
+                        if ($page == '/gate') {
                             if (self::checkPostMethodValue('pass', self::$pppp)) {
                                 session_start();
                                 $_SESSION['pass'] = self::$pppp;
@@ -1119,11 +1388,11 @@ abstract class Controller
                     }
                 }
             }
-            if ($mark == 'Deal') {
-                $pages = ['Admin', 'Deal', 'Deals', 'Valuta'];
+            if ($mark == '/deal') {
+                $pages = ['/admin', '/deal', '/deals', '/valuta'];
                 foreach ($pages as $page) {
                     if (self::checkMethodPostAndPageName($page)) {
-                        if ($page == 'Deal') {
+                        if ($page == '/deal') {
                             if (self::checkExistPosts(['comment', 'order_id', 'id_item'])) {
                                 return self::getDealPageWithSession($receiveBD, $mark, $model, true, null);
                             }
@@ -1157,8 +1426,8 @@ abstract class Controller
                     }
                 }
             }
-            if ($mark == 'Uploadcustfile') {
-                if (self::checkMethodPostAndPageName('Deal')) {
+            if ($mark == '/uploadcustfile') {
+                if (self::checkMethodPostAndPageName('/deal')) {
                     if (($gettingPage = self::startSessionAndCheckPassForProv($mark)) !== null) {
                         return $gettingPage;
                     }
@@ -1167,8 +1436,8 @@ abstract class Controller
                     }
                 }
             }
-            if ($mark == 'Downloadprovfile') {
-                if (self::checkMethodPostAndPageName('Deal')) {
+            if ($mark == '/downloadprovfile') {
+                if (self::checkMethodPostAndPageName('/deal')) {
                     if (($gettingPage = self::startSessionAndCheckPassForProv($mark)) !== null) {
                         return $gettingPage;
                     }
@@ -1212,29 +1481,29 @@ abstract class Controller
                 }
             }
 
-            if ($mark == 'Deals') {
-                if (self::checkMethodPostAndPageName('Deal')) {
+            if ($mark == '/deals') {
+                if (self::checkMethodPostAndPageName('/deal')) {
                     if (($gettingPage = self::startSessionAndCheckPassForProv($mark)) !== null) {
                         return $gettingPage;
                     }
                     $parameters = $model->getAllDeals($receiveBD);
                     return (new PageProviderDeals($mark, $parameters))->getHTML();
                 }
-                if (self::checkMethodPostAndPageName('Admin')) {
+                if (self::checkMethodPostAndPageName('/admin')) {
                     if (($gettingPage = self::startSessionAndCheckPassForProv($mark)) !== null) {
                         return $gettingPage;
                     }
                     $parameters = $model->getAllDeals($receiveBD);
                     return (new PageProviderDeals($mark, $parameters))->getHTML();
                 }
-                if (self::checkMethodPostAndPageName('Valuta')) {
+                if (self::checkMethodPostAndPageName('/valuta')) {
                     if (($gettingPage = self::startSessionAndCheckPassForProv($mark)) !== null) {
                         return $gettingPage;
                     }
                     $parameters = $model->getAllDeals($receiveBD);
                     return (new PageProviderDeals($mark, $parameters))->getHTML();
                 }
-                if (self::checkMethodPostAndPageName('Deals')) {
+                if (self::checkMethodPostAndPageName('/deals')) {
                     if (($gettingPage = self::startSessionAndCheckPassForProv($mark)) !== null) {
                         return $gettingPage;
                     }
@@ -1243,14 +1512,14 @@ abstract class Controller
                 }
             }
 
-            if ($mark == 'Valuta') {
-                $pages = ['Admin', 'Deal', 'Deals', 'Valuta'];
+            if ($mark == '/valuta') {
+                $pages = ['/admin', '/deal', '/deals', '/valuta'];
                 foreach ($pages as $page) {
                     if (self::checkMethodPostAndPageName($page)) {
                         if (($gettingPage = self::startSessionAndCheckPassForProv($mark)) !== null) {
                             return $gettingPage;
                         }
-                        if ($page == 'Valuta' && self::checkExistPosts(['Valuta', $GLOBALS["rub"], $GLOBALS["usd"], $GLOBALS["eur"]])) {
+                        if ($page == '/valuta' && self::checkExistPosts(['Valuta', $GLOBALS["rub"], $GLOBALS["usd"], $GLOBALS["eur"]])) {
                             $valutes = [$GLOBALS["rub"], $GLOBALS["usd"], $GLOBALS["eur"]];
                             foreach($valutes as $valuta) {
                                 if ($model->getOneValutaValue($receiveBD, $valuta)) {

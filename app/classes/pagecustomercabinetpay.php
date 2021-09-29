@@ -1,7 +1,7 @@
 <?php
 class PageCustomerCabinetPay extends PageCustomerCabinet
 {
-    protected $pageName = 'Pay';
+    protected $pageName = '/pay';
     function __construct($name, $customer_id, $login, $coins)
     {
         $this->dictionaryMain = $this->composeDictionaryMain();

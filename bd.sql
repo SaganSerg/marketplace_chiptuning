@@ -39,15 +39,17 @@ CREATE TABLE valuta_exchange_rate
     valuta_name CHAR(3) NOT NULL,
     valuta_exchange_rate FLOAT(5,2) NOT NULL
 );
-CREATE TABLE buy_coins
+CREATE TABLE coin_transaction
 (
-    buy_coins_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    coin_transaction_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     customer_id INT UNSIGNED NOT NULL,
-    buy_coins_date BIGINT NOT NULL,
-    buy_coins_sum SMALLINT NOT NULL,
+    coin_transaction_date BIGINT NOT NULL,
+    coin_transaction_sum SMALLINT NOT NULL,
+    coin_transaction_status CHAR(25) NOT NULL,
 
     FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
 );
+
 CREATE TABLE customer_password_recovery
 (
     customer_password_recovery_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -79,7 +81,15 @@ CREATE TABLE customer_order
     FOREIGN KEY (provider_id) REFERENCES provider(provider_id)
 );
 
+CREATE TABLE deal_payment
+(
+    deal_payment_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    coin_transaction_id INT UNSIGNED NOT NULL,
+    customer_order_id INT UNSIGNED NOT NULL,
 
+    FOREIGN KEY (customer_order_id) REFERENCES customer_order(customer_order_id),
+    FOREIGN KEY (coin_transaction_id) REFERENCES coin_transaction(coin_transaction_id)
+);
 
 CREATE TABLE change_provider 
 (

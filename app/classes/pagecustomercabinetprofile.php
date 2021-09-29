@@ -1,64 +1,46 @@
 <?php
-class PageCustomerFacadeRegistration extends PageCustomerFacade
+class PageCustomerCabinetProfile extends PageCustomerCabinet
 {
-    protected $pageName = '/registration';
-
+    protected $pageName = '/profile';
     protected const INPUT_ATTRIBUTE_NAME = [
-        'registration' => [
-            'tel' => 'Tel', 
-            'email' => 'Email', 
-            'valuta' => 'Valuta', 
-            'pass' => 'Pass', 
-            'repaetedPass' => 'RepeatedPass']
+        'reregistration' => [
+            'tel' => 'Tel',
+            'lang' => 'Lang',
+            'valuta' => 'Valuta'
+            ]
     ];
-
     public static $arrMessageNames = [
         'Tel' => [
             'Not11', 'NotOnly', 'Empty'
-        ],
-        'Email' => [
-            'LongToo', 'Empty', 'NotFormat', 'Exist'
-        ],
-        'Pass' => [
-            'Empty', 'ErrorLength', 'NotOnly'
-        ],
-        'RepeatedPass' => [
-            'Empty', 'NotEqual'
         ],
         'Valuta' => [
             'Empty'
         ]
     ];
+    protected $profile;
+    
+
     protected $messageTelNot11;
     protected $messageTelNotOnly;
     protected $messageTelEmpty;
 
-    protected $messageEmailNotFormat;
-    protected $messageEmailLongToo;
-    protected $messageEmailEmpty;
-    protected $messageEmailExist;
+    
 
     protected $massageValutaEmpty;
-
-    protected $messagePassEmpty;
-    protected $messagePassErrorLength;
-    protected $messagePassNotOnly;
-
-    protected $messageRepeatedPassNotEqual;
-
-    public static $externalConditionEmailExist = false;
-
     function __construct(
         string $name,
         $customer_id, 
+        string $login,
+        int $coins,
+        array $profile,
         array $showedMessageList = []
         )
     {
         $this->dictionaryMain = $this->composeDictionaryMain();
-        parent::__construct($name, $customer_id);
-        $this->assignValue($showedMessageList);
+        parent::__construct($name, $customer_id, $login, $coins);
+        $this->profile = $profile;
+        $this->assignValue($showedMessageList); // надо будет данный метод перенести наверное в трейт, сейчас он объявляется в pagecustomerfacade
     }
-
     private function composeDictionaryMain()
     {
         return [
@@ -67,8 +49,8 @@ class PageCustomerFacadeRegistration extends PageCustomerFacade
                 'ru' => 'Чип-тюнинг'
             ],
             'FormtitleMain' => [
-                'en' => 'Initial registration',
-                'ru' => 'Первичная регистрация'
+                'en' => 'Here you can change your details',
+                'ru' => 'Здесь вы можете изменить ваши данные'
             ],
             'LoginEmptyMain' => [
                 'en' => 'You have not entered anything in the login field',
@@ -109,10 +91,6 @@ class PageCustomerFacadeRegistration extends PageCustomerFacade
             'EmailEmptyMain' => [
                 'en' => 'You have not entered anything in the email address field',
                 'ru' => 'Вы ничего не ввели в поле адреса электронной почты'
-            ],
-            'EmailExistMain' => [
-                'en' => 'This email address is already registered',
-                'ru' => 'Такой электронный адрес уже зарегистрирован'
             ],
             'TelNot11Main' => [
                 'en' => 'The phone number does not contain 11 characters',
@@ -209,10 +187,25 @@ class PageCustomerFacadeRegistration extends PageCustomerFacade
             'SendMain' => [
                 'en' => 'Send',
                 'ru' => 'Отправить'
-            ]
+            ],
+            'rusMain' => [
+                'en' => 'Russian language',
+                'ru' => 'Русский язык'
+            ],
+            'engMain' => [
+                'en' => 'English language',
+                'ru' => 'Английский язык'
+            ],
+            'ChooseLangMain' => [
+                'en' => 'Choose language',
+                'ru' => 'Выберите язык'
+            ],
+            'LanguageMain' => [
+                'en' => 'Language',
+                'ru' => 'Язык'
+            ] 
         ];
     }
-
     static function is(string $inputName, string $whatCheck)
     {
         if (isset($_POST[$inputName])) {
@@ -220,31 +213,12 @@ class PageCustomerFacadeRegistration extends PageCustomerFacade
             $length = strlen($input);
             switch($whatCheck) {
                 case 'TelEmpty':
-                case 'PassEmpty': 
-                case 'RepeatedPassEmpty':
-                case 'EmailEmpty':
                 case 'ValutaEmpty':
                     return $length == 0;
-                case 'EmailExist':
-                    return self::$externalConditionEmailExist;
                 case 'TelNot11':
                     return  $length >=1 && $length < 11 || $length > 11;
                 case 'TelNotOnly':
                     return preg_match('/\D/', $input) === 1;
-                case 'EmailNotFormat':
-                    if ($length > 0) {
-                        return preg_match('/^[a-zа-я0-9_\-\.]+@[a-zа-я0-9\-]+\.[a-zа-я0-9\-\.]+$/iu', $input) === 0;
-                    }
-                    return false;
-                case 'EmailLongToo':
-                    return $length > 50;
-                case 'PassErrorLength':
-                        return $length >= 1 && $length < 5 || $length > 10;     
-                case 'PassNotOnly':
-                        return preg_match('/\W/', $input) === 1;
-                case 'RepeatedPassNotEqual':
-                        $inputPass = isset($_POST['Pass']) ? $_POST['Pass'] : '';
-                        return $inputPass !== $input;
                     break;
                 default: 
                     throw new Exception("Методу был передан неправильный аргумент whatCheck");
@@ -255,16 +229,64 @@ class PageCustomerFacadeRegistration extends PageCustomerFacade
         }
         return false;
     }
-    private function getInputTextForComposeHTML($name, $placeholder) {
-        return $this->getInput('text', $this->saveInputValue($name), $name, "form__input" , $placeholder);
+    function assignValue(array $showedMessageList) // данный метод надо будет удалить, а потом разместить в трейте
+    {
+        if (!$showedMessageList) {
+            self::getInputNameList();
+        }
+        else {
+            foreach ($showedMessageList as $elemName => $elemValue) {
+                $propertyName = 'message' . $elemName;
+                
+                $this->$propertyName = $elemValue;
+            }
+        }
     }
-    private function getInputPassForComposeHTML($name) {
-        return $this->getInput('password', null , $name, "form__input" , 'password');
+    static function getInputNameList() // этот метод переделан
+    {
+        $arrMessageNames = static::$arrMessageNames;
+        $arrMessages = [];
+        foreach ($arrMessageNames as $inputName => $messagePrefixes ) {
+            foreach ($messagePrefixes as $prefix) {
+                $elemName = $inputName . $prefix;
+                $arrMessages[$elemName] = static::is($inputName, $elemName);
+            }
+        }
+        // $arrMessages['CookiesAgree'] = static::isMessageCookiesAgree();
+        return $arrMessages;
+    }
+    static function isMessageCookiesAgree() // данный метод надо будет удалить, а потом разместить в трейте
+    {
+        return isset($_POST['Page']) && !$GLOBALS['cookiesmanagement']->isAgree;;
+    }
+    protected function getComposedHiddenInputs()// данный метод надо будет удалить, а потом разместить в трейте
+    {
+        $arr = static::INPUT_ATTRIBUTE_NAME;
+        $hiddenInputs = '';
+        foreach ($arr as $arrPlace) {
+            foreach ($arrPlace as $name) {
+                $hiddenInputs .= $this->getHiddenInput($this->saveInputValue($name), $name);
+            }
+        }
+        return $hiddenInputs;
+    }
+    protected function getFormMessage(string $place, $condition, $class = null) // данный метод надо будет удалить, а потом разместить в трейте
+    {
+        if ($condition) {
+            return "<div class='$class'>{$this->getText($this->lang, $place)}</div>";
+        }
+    }
+    protected const ARR_FOR_LANG = [
+        ['ru', 'rus', 'РУС'], 
+        ['en', 'eng', 'ENG']
+    ]; // данную константу надо будет куда-нибудь засунуть
+    private function getInputTextForComposeHTML($name, $placeholder) {
+        return $this->getInput('text', $this->saveInputValue($name), $name, "profile-input-block__input" , $placeholder);
     }
     private function getSelectForComposeHTML()
     {
         $valutas = [$GLOBALS["rub"] => 'Ruble', $GLOBALS["usd"] => 'Dollar', $GLOBALS["eur"] => 'Euro'];
-        $select = "<select class='form__input' name='Valuta' size='1'>";
+        $select = "<select class='profile-input-block__input' name='Valuta' size='1'>";
         
         if (!isset($_POST['Valuta']) || $_POST['Valuta'] === '') {
             $select .= "<option disabled selected value='empty'>{$this->getText($this->lang, 'ChooseValutaMain')}</option>";
@@ -278,62 +300,60 @@ class PageCustomerFacadeRegistration extends PageCustomerFacade
         }
         return $select .= " </select>";
     }
-    private function composeHTML() 
+    private function getSelectorForComposerHTMLlang()
     {
-        $registrationInput = self::INPUT_ATTRIBUTE_NAME['registration'];
-        $passRegistrationInput = $registrationInput['pass'];
+        $select = "<select class='profile-input-block__input' name='Lang' size='1'>";
+        if (!isset($_POST['Lang']) || $_POST['Lang'] === '') {
+            $select .= "<option disabled selected value='empty'>{$this->getText($this->lang, 'ChooseLangMain')}</option>";
+        }
+        foreach (self::ARR_FOR_LANG as $elem) {
+            $selected = '';
+            if (isset($_POST['Lang']) && $_POST['Lang'] == $elem[0]) {
+                $selected = 'selected';
+            }
+            $select .= "<option value='$elem[0]' $selected >{$this->getText($this->lang, $elem[1] . 'Main')}</option>";
+        }
+        return $select .= " </select>";
+    }
+    private function composeHTML() // данный метод отличается от регистрационного
+    {
+        $registrationInput = self::INPUT_ATTRIBUTE_NAME['reregistration'];
         $telRegistrationInput = $registrationInput['tel'];
-        $emailRegistrationInput = $registrationInput['email'];
         $valutaRegistrationInput = $registrationInput['valuta'];
-        $repaetedPassRegistrationInput = $registrationInput['repaetedPass'];
+        $langRegistrationInput = $registrationInput['lang'];
         $hiddenInputs = $this->getComposedHiddenInputs();
         return <<<HTML
-        {$this->getFacadeHeader('registration', $hiddenInputs)}
-        <form class="main__form form" method="POST" action="/pay">
-            <fieldset class="form__block-form">
-                <legend class="form__title">{$this->getText($this->lang, 'FormtitleMain')}</legend>
-                <label class="form__wrapper-input">
-                    {$this->getFormMessage('CookiesAgreeMain', $this->messageCookiesAgree)}
-                    {$this->getFormMessage('EmailNotFormatMain', $this->messageEmailNotFormat)}
-                    {$this->getFormMessage('EmailLongTooMain', $this->messageEmailLongToo)}
-                    {$this->getFormMessage('EmailEmptyMain', $this->messageEmailEmpty)}
-                    {$this->getFormMessage('EmailExistMain', $this->messageEmailExist)} 
-                    <div class="form__description">{$this->getText($this->lang, 'DiscriptionForEmailMain')}</div>
-                    {$this->getInputTextForComposeHTML($emailRegistrationInput, "mail@mail.xyz")}
-                    <span class="form__whatis">{$this->getText($this->lang, 'EmailMain')}</span>
+        {$this->getFacadeHeader()}
+        {$this->getNavigation()}
+        <article class="main__content content content_profile">
+            <h1 class='content__title'>{$this->getText($this->lang, 'FormtitleMain')}</h1>
+            <ul class='content__profileList profileList'>
+                <li class='profile__element profile__element_tel'>{$this->getText($this->lang, 'TelMain')} -- {$this->profile['Tel']}</li>
+                <li class='profile__element profile__element_email'>{$this->getText($this->lang, 'EmailMain')} -- {$this->profile['Email']}</li>
+                <li class='profile__element profile__element_valuta'>{$this->getText($this->lang, 'ValutaMain')} -- {$this->profile['Valuta']}</li>
+            </ul>
+            <form class="content__form profile-form" method="POST" action="/profile">
+                <label class="profile-form__input-block profile-input-block">
+                    <div class="profile-input-block__discription">{$this->getText($this->lang, 'DiscriptionForValutaMain')}</div>
+                    {$this->getSelectorForComposerHTMLlang()}
+                    <span class="profile-input-block__whatisit">{$this->getText($this->lang, 'LanguageMain')}</span>
                 </label>
-                <label class="form__wrapper-input">
-                    {$this->getFormMessage('TelNot11Main', $this->messageTelNot11)}
-                    {$this->getFormMessage('TelNotOnlyMain', $this->messageTelNotOnly)}
-                    {$this->getFormMessage('TelEmptyMain', $this->messageTelEmpty)}
-                    <div class="form__description">{$this->getText($this->lang, 'DiscriptionForTelMain')}</div>
+                <label class="profile-form__input-block profile-input-block">
+                    {$this->getFormMessage('TelNot11Main', $this->messageTelNot11, 'profile-input-block__message')}
+                    {$this->getFormMessage('TelNotOnlyMain', $this->messageTelNotOnly, 'profile-input-block__message')}
+                    <div class="profile-input-block__discription">{$this->getText($this->lang, 'DiscriptionForTelMain')}</div>
                     {$this->getInputTextForComposeHTML($telRegistrationInput, $this->telExample)}
-                    <span class="form__whatis">{$this->getText($this->lang, 'TelMain')}</span>
+                    <span class="profile-input-block__whatisit">{$this->getText($this->lang, 'TelMain')}</span>
                 </label>
-                <label class="form__wrapper-input">
-                    {$this->getFormMessage('ValutaEmptyMain', $this->messageValutaEmpty)}
-                    <div class="form__description">{$this->getText($this->lang, 'DiscriptionForValutaMain')}</div>
+                <label class="profile-form__input-block profile-input-block">
+                    <div class="profile-input-block__discription">{$this->getText($this->lang, 'DiscriptionForValutaMain')}</div>
                     {$this->getSelectForComposeHTML()}
-                    <span class="form__whatis">{$this->getText($this->lang, 'ValutaMain')}</span>
+                    <span class="profile-input-block__whatisit">{$this->getText($this->lang, 'ValutaMain')}</span>
                 </label>
-                <label class="form__wrapper-input">
-                    {$this->getFormMessage('PassErrorLengthMain', $this->messagePassErrorLength)}
-                    {$this->getFormMessage('PassNotOnlyMain', $this->messagePassNotOnly)}
-                    {$this->getFormMessage('PassEmptyMain', $this->messagePassEmpty)} 
-                    <div class="form__description">{$this->getText($this->lang, 'DiscriptionForPassMain')}</div>
-                    {$this->getInputPassForComposeHTML("Pass")}
-                    <span class="form__whatis">{$this->getText($this->lang, 'PassMain')}</span>
-                </label>
-                <label class="form__wrapper-input">
-                    {$this->getFormMessage('RepeatedPassNotEqual', $this->messageRepeatedPassNotEqual)}
-                    <div class="form__description">{$this->getText($this->lang, 'DiscriptionForRepeatedPassMain')}</div>
-                    {$this->getInputPassForComposeHTML("RepeatedPass")}
-                    <span class="form__whatis">{$this->getText($this->lang, 'PasswordConfirmationMain')}</span>
-                </label>
-                {$this->getSubmit($this->getText($this->lang, 'SendMain'), $this->pageName, "form__button button button__transparent")}
-            </fieldset>
-        </form>
-        {$this->getFacadeFooter($this->pageName, $hiddenInputs)}
+                {$this->getSubmit($this->getText($this->lang, 'SendMain'), $this->pageName, "profile-form__submit")}
+            </form>
+        </article>
+        {$this->getFacadeFooter()}
 HTML;
     }
 
@@ -343,41 +363,4 @@ HTML;
     }
 
     private $telExample = '71001234567';
-    
-    
-    
-
-    
-    // static function parseMessageNames()
-    // {
-    //     $arrMessages = [];
-    //     foreach (self::$arrMessageNames as $inputName => $messagePrefixes ) {
-    //         foreach ($messagePrefixes as $prefix) {
-    //             $elemName = $inputName . $prefix;
-    //             $arrMessages[$elemName] = self::is($inputName, $elemName);
-    //         }
-    //     }
-    //     $arrMessages['AngreeCookies'] = self::isMessageCookiesAgree();
-    //     return $arrMessages;
-    // } 
-    
-    
-    // function assignValue(array $showedMessageList)
-    // {
-    //     if (!$showedMessageList) {
-    //         self::getInputNameList();
-    //     }
-    //     else {
-    //         foreach ($showedMessageList as $elemName => $elemValue) {
-    //             $propertyName = 'message' . $elemName;
-                
-    //             $this->$propertyName = $elemValue;
-    //         }
-    //     }
-        
-    // }
-    
-
-
-    
 }

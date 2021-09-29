@@ -1,7 +1,7 @@
 <?php
 class PageCustomerCabinetEcu extends PageCustomerCabinet
 {
-    protected $pageName = 'Ecu';
+    protected $pageName = '/ecu';
 
     private $ecuList;
     private $vehicleType;

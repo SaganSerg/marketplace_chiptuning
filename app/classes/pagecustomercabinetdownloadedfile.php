@@ -2,7 +2,7 @@
 class PageCustomerCabinetDownloadedfile extends PageCustomerCabinet
 {
     private $order_id;
-    protected $pageName = 'Downloadedfile';
+    protected $pageName = '/downloadedfile';
     function __construct($name, $login, $coins, $order_id)
     {
         $this->dictionaryMain = $this->composeDictionaryMain();

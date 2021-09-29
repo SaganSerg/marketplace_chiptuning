@@ -1,7 +1,7 @@
 <?php
 class PageCustomerCabinetTreatment extends PageCustomerCabinet
 {
-    protected $pageName = 'Treatment';
+    protected $pageName = '/treatment';
     private $vehicleTypeList;
     private $messageChosenNothing;
     

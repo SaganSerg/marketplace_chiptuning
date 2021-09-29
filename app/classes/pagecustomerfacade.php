@@ -34,7 +34,7 @@ abstract class PageCustomerFacade extends PageCustomer
     private function getElementLangSwitcher(string $lang, string $classPrefix, string $value, string $blockInputs = null) : string
     {
         return <<<HTML
-            <form class="lang-switcher__wrapper-input" action="{$this->getRequerMyself()}" method="POST">
+            <form class="lang-switcher__wrapper-input" action="{$this->pageName}" method="POST">
                 {$this->getHiddenInputSet($lang, $this->pageName, $blockInputs)}
                 <input class="lang-switcher__item lang-switcher__item_$classPrefix" type="submit" value="$value">
             </form>
@@ -73,7 +73,7 @@ HTML;
 
     protected function getFacadeFooter($pageName, $otherInput)
     {
-        return $this->footer($this->getCookieWindow($this->getText($this->lang, 'agreeWindowCookie'), $this->getText($this->lang, 'agreementtitleWindowCookie'), $this->getText($this->lang, 'agreementexplanationWindowCookie'), $this->getRequerMyself(), $this->lang, $this->getHiddenInputSet($this->lang, $pageName, $otherInput)));
+        return $this->footer($this->getCookieWindow($this->getText($this->lang, 'agreeWindowCookie'), $this->getText($this->lang, 'agreementtitleWindowCookie'), $this->getText($this->lang, 'agreementexplanationWindowCookie'), $this->pageName, $this->lang, $this->getHiddenInputSet($this->lang, $pageName, $otherInput)));
         
     }
 
