@@ -470,6 +470,13 @@ abstract class Controller
                 "SELECT customer_password_recovery_date_of_link_creation, customer_password_recovery_id FROM customer_password_recovery WHERE customer_password_recovery_notwork = 0",
                 []
             );
+            // это нужно для предотвращения от атаки CSRF
+            // в маршрутизаторе потом нужно бедет проверять установлен ли переменная checkReferer и проверять ee значение
+            // если значение false, то значит это атака
+            if (isset($_SERVER['HTTP_REFERER'])) {
+                $checkReferer = (stripos($_SERVER['HTTP_REFERER'], $GLOBALS['protocol'] . '://' . $GLOBALS['domain']) === 0);
+            }
+            // --- 
             foreach ($arrDateLinkCreation as $dateLinkCreation) {
                 $linkExpirationDate = $dateLinkCreation['customer_password_recovery_date_of_link_creation'] + $GLOBALS['saveLinkPasswordTime'];
                 if ($linkExpirationDate < $date) {
@@ -554,6 +561,7 @@ abstract class Controller
 /* 
 При описании маршрутизации страниц из внешней части нужно обязательно делать ссылку на саму себя, для переключения языка
 */
+            
             if ($mark == '/index') {
                 if ($_SERVER['REQUEST_METHOD'] == "GET") {
                     return (new PageCustomerFacadeIndex($mark, null))->getHTML();
@@ -1079,6 +1087,17 @@ abstract class Controller
                         return self::returnPageCustomerCabinetPayWithStaingId($mark, $customer_email, $pass, $model, $cookiesmanagement);
                     }
                 }
+            }
+            if ($mark == '/maingate') {
+                if (self::checkMethodPostAndPageName('/maingate') && isset($checkReferer) && $checkReferer) {
+                    // return '"maingage Page" must be here'; Это нужно было для проверки, можно удалять
+                }
+                if ($_SERVER['REQUEST_METHOD'] == "GET") {
+
+                    // return "<form method='POST' action=''/maingate''><input type='hidden' value='/maingate' name='Page'><input type='submit'></form>"; это нужно было для проверки можно удалять
+                    
+                }
+                return self::getNotFound($mark);
             }
             
             
