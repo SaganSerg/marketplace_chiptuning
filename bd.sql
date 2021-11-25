@@ -11,7 +11,14 @@ GRANT SELECT, INSERT, UPDATE  ON chiptung3.* TO 'admin_chiptuning3'@'localhost' 
 USE chiptuning3;
 
 -- создаем таблицы
-
+CREATE TABLE email_for_registration /* в данной таблице хранится информация об электронных адресах, которые ввел потенциальный клиент, до того как было подтвеждено что данная почта действительно его */
+(
+	email_for_registration_id INT UNSIGNED NOT NULL PRIMARY KEY,
+	email_for_registration_email CHAR(50) NOT NULL,
+	email_for_registration_url CHAR(255) DEFAULT 0, /* предварительно, данный урл будет формироваться на основе значения customer_email_id плюс слово registration */
+	email_for_registration_date_of_link_creation BIGINT NOT NULL,
+    email_for_registration_notwork SMALLINT DEFAULT 0
+);
 CREATE TABLE customer
 (
     customer_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -54,8 +61,10 @@ CREATE TABLE customer_password_recovery
 (
     customer_password_recovery_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     customer_password_recovery_url CHAR(255) NOT NULL,
-    customer_password_recovery_counting SMALLINT DEFAULT 0,
-    customer_password_recovery_date BIGINT NOT NULL,
+    customer_password_recovery_notwork SMALLINT DEFAULT 0,
+    customer_password_recovery_date_of_link_creation BIGINT NOT NULL,
+    customer_password_recovery_date_of_visit_link BIGINT DEFAULT 0,
+    customer_password_recovery_date_password BIGINT DEFAULT 0,
     customer_id INT UNSIGNED NOT NULL,
 
     FOREIGN KEY (customer_id) REFERENCES customer(customer_id) 
@@ -121,7 +130,7 @@ CREATE TABLE service
 CREATE TABLE condition_id
 (
     condition_id_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    condition_id_works CHAR(1) NOT NULL
+    condition_id_works CHAR(1) NOT NULL /* значение 1 (единица) говорит что данная кондиция работает */
 );
 CREATE TABLE condition_value /* в данную базу нужно вносить только новые кондиции, изменять старые нельзя */
 (
@@ -202,54 +211,57 @@ INSERT INTO service_type (service_type_name) VALUES ('file treatment');
 INSERT INTO service_type (service_type_name) VALUES ('consultation');
 --
 --
-INSERT INTO service (service_name) VALUES ('egr off');
-INSERT INTO service (service_name) VALUES ('cat off');
-INSERT INTO service (service_name) VALUES ('guc artrima mod');
-INSERT INTO service (service_name) VALUES ('checksum correction');
-INSERT INTO service (service_name) VALUES ('dpf off');
-INSERT INTO service (service_name) VALUES ('speed limit');
-INSERT INTO service (service_name) VALUES ('dtc off');
-INSERT INTO service (service_name) VALUES ('ori file request');
+-- INSERT INTO service (service_name) VALUES ('egr off');
+-- INSERT INTO service (service_name) VALUES ('cat off');
+-- INSERT INTO service (service_name) VALUES ('guc artrima mod');
+-- INSERT INTO service (service_name) VALUES ('checksum correction');
+-- INSERT INTO service (service_name) VALUES ('dpf off');
+-- INSERT INTO service (service_name) VALUES ('speed limit');
+-- INSERT INTO service (service_name) VALUES ('dtc off');
+-- INSERT INTO service (service_name) VALUES ('ori file request');
+INSERT INTO service (service_name) VALUES ('SCR-off');
+INSERT INTO service (service_name) VALUES ('Power');
+INSERT INTO service (service_name) VALUES ('DTC-off');
 --
 --
 INSERT INTO condition_id (condition_id_works) VALUES(1);
 INSERT INTO condition_value (condition_id_id, data_name, data_value, service_type_id) VALUES (
     (SELECT condition_id_id FROM condition_id ORDER BY condition_id_id DESC LIMIT 1),
     'vehicle type',
-    'car',
+    'truck',
     (SELECT service_type_id FROM service_type WHERE service_type_name = 'file treatment' ORDER BY service_type_id DESC LIMIT 1)
 );
 INSERT INTO condition_value (condition_id_id, data_name, data_value, service_type_id) VALUES (
     (SELECT condition_id_id FROM condition_id ORDER BY condition_id_id DESC LIMIT 1),
     'vehicle brand',
-    'bmw',
+    'KAMAZ',
     (SELECT service_type_id FROM service_type WHERE service_type_name = 'file treatment' ORDER BY service_type_id DESC LIMIT 1)
 );
 INSERT INTO condition_value (condition_id_id, data_name, data_value, service_type_id) VALUES (
     (SELECT condition_id_id FROM condition_id ORDER BY condition_id_id DESC LIMIT 1),
     'vehicle model',
-    'x6',
+    '740',
     (SELECT service_type_id FROM service_type WHERE service_type_name = 'file treatment' ORDER BY service_type_id DESC LIMIT 1)
 );
 INSERT INTO condition_value (condition_id_id, data_name, data_value, service_type_id) VALUES (
     (SELECT condition_id_id FROM condition_id ORDER BY condition_id_id DESC LIMIT 1),
     'ecu',
-    '2',
+    'EDC7UC31',
     (SELECT service_type_id FROM service_type WHERE service_type_name = 'file treatment' ORDER BY service_type_id DESC LIMIT 1)
 );
 INSERT INTO condition_service (condition_id_id, service_id, condition_service_price) VALUES (
     (SELECT condition_id_id FROM condition_id ORDER BY condition_id_id DESC LIMIT 1),
-    (SELECT service_id FROM service WHERE service_name = 'egr off'),
+    (SELECT service_id FROM service WHERE service_name = 'SCR-off'),
     200
 );
 INSERT INTO condition_service (condition_id_id, service_id, condition_service_price) VALUES (
     (SELECT condition_id_id FROM condition_id ORDER BY condition_id_id DESC LIMIT 1),
-    (SELECT service_id FROM service WHERE service_name = 'cat off'),
+    (SELECT service_id FROM service WHERE service_name = 'DTC-off'),
     100
 );
 INSERT INTO condition_service (condition_id_id, service_id, condition_service_price) VALUES (
     (SELECT condition_id_id FROM condition_id ORDER BY condition_id_id DESC LIMIT 1),
-    (SELECT service_id FROM service WHERE service_name = 'guc artrima mod'),
+    (SELECT service_id FROM service WHERE service_name = 'Power'),
     400
 );
 

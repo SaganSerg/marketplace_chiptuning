@@ -30,7 +30,7 @@ class PageCustomerCabinetPay extends PageCustomerCabinet
         {$this->getNavigation()}
         <article class='main__content content content_pay'>
             <h1 class='content__title'>{$this->getText($this->lang, 'BuyCoins')}</h1>
-            <form class='content__block-buy-coins' method="post" action="{$this->getRequerMyself()}">
+            <form class='content__block-buy-coins' method="post" action="{$this->pageName}">
                 <input type="number" name="coins">
                 {$this->getSubmit($this->getText($this->lang, 'Pay'), $this->pageName)}
             </form>

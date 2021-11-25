@@ -46,17 +46,21 @@ class PageCustomerFacadeRegistration extends PageCustomerFacade
 
     protected $messageRepeatedPassNotEqual;
 
+    protected $registrationEmail;
+
     public static $externalConditionEmailExist = false;
 
     function __construct(
         string $name,
         $customer_id, 
+        $registrationEmail = null,
         array $showedMessageList = []
         )
     {
         $this->dictionaryMain = $this->composeDictionaryMain();
         parent::__construct($name, $customer_id);
         $this->assignValue($showedMessageList);
+        $this->registrationEmail = (!$registrationEmail) ? $this->saveInputValue('Email') : $registrationEmail;
     }
 
     private function composeDictionaryMain()
@@ -298,8 +302,8 @@ class PageCustomerFacadeRegistration extends PageCustomerFacade
                     {$this->getFormMessage('EmailLongTooMain', $this->messageEmailLongToo)}
                     {$this->getFormMessage('EmailEmptyMain', $this->messageEmailEmpty)}
                     {$this->getFormMessage('EmailExistMain', $this->messageEmailExist)} 
-                    <div class="form__description">{$this->getText($this->lang, 'DiscriptionForEmailMain')}</div>
-                    {$this->getInputTextForComposeHTML($emailRegistrationInput, "mail@mail.xyz")}
+                    <div class="form__description">Это адрес вашей электронной почты {$this->registrationEmail}</div>
+                    <input type="hidden" value="{$this->registrationEmail}" name="$emailRegistrationInput"> <!--  надо будет заменить функцие для вывода скрытого -->
                     <span class="form__whatis">{$this->getText($this->lang, 'EmailMain')}</span>
                 </label>
                 <label class="form__wrapper-input">

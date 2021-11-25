@@ -631,7 +631,7 @@ class Model
             $appDB->commit();
         }
     }
-    function getOneElementArr($query, $parameters, $fieldName) { // вернет одномерный массив из значений одного столбца
+    function getOneElementArr($query, $parameters, $fieldName) { 
         try {
             $appDB = $this->appDB();
             $appDB->beginTransaction();
@@ -646,12 +646,13 @@ class Model
                 $elementArr[] = $string[$fieldName];
             }
             $appDB->commit();
-            return $elementArr;
+            return $elementArr; // вернет одномерный массив из значений одного столбца
         } catch (PDOException $e) {
             echo $e->getMessage();
             $appDB->commit();
         }
     }
+
     function updatePass($password, $customer_id)
     {
         $hashPass = $this->hashPass($this->cleanForm($password));
@@ -660,4 +661,65 @@ class Model
             [$hashPass, $customer_id]
         );
     }
+
+    function getCustomerElement($customer_id, $elementName)
+    {
+        return $this->getElements(
+            "SELECT customer_$elementName FROM customer WHERE customer_id = ?",
+            [$customer_id]
+        )[0]["customer_$elementName"];
+    }
+
+    function getCustomerEmail($customer_id)
+    {
+        return $this->getCustomerElement($customer_id, 'email');
+    }
+
+    function getCustomerCoins($customer_id)
+    {
+        return $this->getCustomerElement($customer_id, 'coins');
+    }
+
+    function getCustomerPasswordRecoveryId($requestUri)
+    {
+        $urlList = $this->getElements(
+            "SELECT customer_password_recovery_id FROM customer_password_recovery WHERE customer_password_recovery_notwork < 1 AND customer_password_recovery_url = ? ORDER BY customer_password_recovery_id DESC",
+            [$requestUri]
+        );
+        return (array_key_exists(0, $urlList)) ? $urlList[0]['customer_password_recovery_id'] : null;
+    }
+
+    function getRegistrationEmailId($requestUri)
+    {
+        $urlList = $this->getElements(
+            "SELECT email_for_registration_id FROM email_for_registration WHERE email_for_registration_url = ? AND email_for_registration_notwork < 1 ORDER BY email_for_registration_id DESC",
+            [$requestUri]
+        );
+        return (array_key_exists(0, $urlList)) ? $urlList[0]['email_for_registration_id'] : null;
+    }
+
+    function getConditionIdIds()
+    {
+        return $this->getElements(
+            'SELECT condition_id_id FROM condition_id WHERE condition_id_works = 1',
+            []
+        );
+    }
+
+    function getServiceTyptId($serviceTypeName)
+    {
+        return $this->getElements(
+            "SELECT service_type_id FROM service_type WHERE service_type_name = ?",
+            [$serviceTypeName]
+        )[0]['service_type_id'];
+    }
+    
+    function getDataValues($dataName, $idServiceType, $conditionId)
+    {
+        return $this->getElements(
+            "SELECT data_value FROM condition_value WHERE data_name = ? AND service_type_id = ? AND condition_id_id = ?",
+            [$dataName, $idServiceType, $conditionId]
+        );
+    }
+    
 }

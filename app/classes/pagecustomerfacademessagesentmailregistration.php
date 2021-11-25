@@ -1,14 +1,17 @@
 <?php
-class PageCustomerFacadeContacts extends PageCustomerFacade
+class PageCustomerFacadeMessagesentmailregistration extends PageCustomerFacade
 {
-    protected $pageName = '/contacts';
+    protected $pageName = '/messagesentmailregistration';
+    private $email_for_registration_email;
     protected const INPUT_ATTRIBUTE_NAME = [];
     function __construct(
         string $name,
-        $customer_id
+        $customer_id,
+        $email_for_registration_email
         )
     {
         $this->dictionaryMain = $this->composeDictionaryMain();
+        $this->email_for_registration_email = $email_for_registration_email;
         parent::__construct($name, $customer_id);    
     }
     
@@ -36,9 +39,7 @@ class PageCustomerFacadeContacts extends PageCustomerFacade
         return <<<HTML
         {$this->getFacadeHeader('contacts', $hiddenInputs)}
         <article class='main__facade-article facade-article'>
-            <h1 class='facade-article__title'>{$this->getText($this->lang, 'Сontacts')}</h1>
-            <p class='facade-article__paragraph'>Это первый адрес</p>
-            <p class='facade-article__paragraph'>Это второй адрес</p>
+            <div>Мы отправили сообщение на почту <span>$this->email_for_registration_email</span></div>
         </article>
        
         {$this->getFacadeFooter($this->pageName, $hiddenInputs)}

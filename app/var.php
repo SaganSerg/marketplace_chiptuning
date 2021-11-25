@@ -13,3 +13,4 @@ $incomingFileDir = 'chiptuning3_incoming';
 $outgoingFileDir = 'chiptuning3_outgoing';
 $fileSizeFromCustomer = 10*1024*1024;
 $ourMail = 'websagan@gmail.com';
+$saveLinkPasswordTime = 60*60*24;

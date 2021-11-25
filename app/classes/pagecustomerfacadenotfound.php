@@ -1,17 +1,19 @@
 <?php
-class PageCustomerFacadeContacts extends PageCustomerFacade
+class PageCustomerFacadeNotfound extends PageCustomerFacade
 {
-    protected $pageName = '/contacts';
+    protected $pageName = 'Notfound';
     protected const INPUT_ATTRIBUTE_NAME = [];
     function __construct(
-        string $name,
-        $customer_id
+        string $name, $customer_id, array $arr = []
         )
     {
         $this->dictionaryMain = $this->composeDictionaryMain();
-        parent::__construct($name, $customer_id);    
+        parent::__construct($name, $customer_id);
     }
-    
+    // function getHTML()
+    // {
+    //     return "Something went wrong!";
+    // }
     private function composeDictionaryMain() 
     {
         return [
@@ -19,28 +21,24 @@ class PageCustomerFacadeContacts extends PageCustomerFacade
                 'en' => 'Chip tuning',
                 'ru' => 'Чип-тюнинг'
             ],
+            'WentWrong' => [
+                'en' => 'Something went wrong!',
+                'ru' => 'Что-то пошло не так!'
+            ], 
             'CookiesAgreeMain' => [
                 'en' => 'You must give your consent to the use of cookies',
                 'ru' => 'Вы должны дать свое согласие на использование файлов-cookie'
-            ],
-            'Сontacts' => [
-                'en' => 'Contacts',
-                'ru' => 'Контакты'
             ]
         ];
     }
-    
     private function composeHTML() 
     {
         $hiddenInputs = $this->getComposedHiddenInputs();
         return <<<HTML
-        {$this->getFacadeHeader('contacts', $hiddenInputs)}
+        {$this->getFacadeHeader('notfound', $hiddenInputs)}
         <article class='main__facade-article facade-article'>
-            <h1 class='facade-article__title'>{$this->getText($this->lang, 'Сontacts')}</h1>
-            <p class='facade-article__paragraph'>Это первый адрес</p>
-            <p class='facade-article__paragraph'>Это второй адрес</p>
+            <h1 class='facade-article__title'>{$this->getText($this->lang, 'WentWrong')}</h1>
         </article>
-       
         {$this->getFacadeFooter($this->pageName, $hiddenInputs)}
     
 HTML;

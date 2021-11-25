@@ -8,9 +8,9 @@ abstract class Page
         $this->name = $name;
     }
 
-    protected function getRequerMyself() // Эта функция будет не нужна удалить наверное
+    protected function getRequerMyself()
     {
-        return '/' . strtolower($this->pageName);
+        return $this->pageName;
     }
 
     protected function getHiddenInput($value, $name)

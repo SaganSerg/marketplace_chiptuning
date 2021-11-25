@@ -94,6 +94,10 @@ class PageCustomerCabinetTreatment extends PageCustomerCabinet
                 'en' => 'Marine',
                 'ru' => 'Морское судно'
             ],
+            'TruckMain' => [
+                'en' => 'Truck',
+                'ru' => 'Грузовик'
+            ],
             'NothingSelected' => [
                 'en' => "Nothing selected",
                 'ru' => 'Ничего не выбрано'
@@ -114,7 +118,8 @@ class PageCustomerCabinetTreatment extends PageCustomerCabinet
         $html = "<option disabled selected value='initial-state'>{$this->getText($this->lang, 'SelectVehicleTypeMain')}</option>";
         foreach ($this->vehicleTypeList as $vehicleType) {
             $place = $this->getDictionaryMark($vehicleType, 'Main');
-            $html .= "<option value='$vehicleType'>{$this->getText($this->lang, $place)}</option>";
+            $vehicleTypeWithUnderscore = $this->prepareHTMLAttr($vehicleType);
+            $html .= "<option value='$vehicleTypeWithUnderscore'>{$this->getText($this->lang, $place)}</option>";
         }
         return $html;
     }

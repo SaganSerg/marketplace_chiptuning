@@ -9,10 +9,13 @@ class PageCustomerCabinetAllparameters extends PageCustomerCabinet
     private $vehicleModel;
     private $ecu;
 
-    private $messageChosenNothing;
+    private $messageChosenNothingReadingDevice;
+    private $messageChosenNothingService;
+    private $messageFileTooLarge;
+
     private $servicePriceList;
     
-    function __construct($name, $customer_id, $email, $coins, $readingDeviceList, $servicePriceList, $vehicleType, $vehicleBrand, $vehicleModel, $ecu, $messageChosenNothing = false)
+    function __construct($name, $customer_id, $email, $coins, $readingDeviceList, $servicePriceList, $vehicleType, $vehicleBrand, $vehicleModel, $ecu, bool $messageChosenNothingReadingDevice, bool $messageChosenNothingService, bool $messageFileTooLarge)
     {
         $this->dictionaryMain = $this->composeDictionaryMain();
         $this->vehicleType = $vehicleType;
@@ -20,8 +23,10 @@ class PageCustomerCabinetAllparameters extends PageCustomerCabinet
         $this->vehicleModel = $vehicleModel;
         $this->ecu = $ecu;
         $this->servicePriceList = $servicePriceList;
-        $this->readingDeviceList =$readingDeviceList;
-        $this->messageChosenNothing = $messageChosenNothing;
+        $this->readingDeviceList = $readingDeviceList;
+        $this->messageChosenNothingReadingDevice = $messageChosenNothingReadingDevice;
+        $this->messageChosenNothingService = $messageChosenNothingService;
+        $this->messageFileTooLarge = $messageFileTooLarge;
         parent::__construct($name, $customer_id, $email, $coins);
     }
     private function composeDictionaryMain() {
@@ -61,6 +66,10 @@ class PageCustomerCabinetAllparameters extends PageCustomerCabinet
             'Further' => [
                 'en' => 'Further',
                 'ru' => 'Далее'
+            ],
+            'Back' => [
+                'en' => 'Back',
+                'ru' => 'Назад'
             ],
             'PlateOfVehicleOptional' => [
                 'en' => 'Plate of Vehicle (optional)',
@@ -121,6 +130,18 @@ class PageCustomerCabinetAllparameters extends PageCustomerCabinet
             'SelectRestOptions' => [
                 'en' => 'Select the rest of the options',
                 'ru' => 'Выберите оставшиеся параметры'
+            ],
+            'You have not selected a reader' => [
+                'en' => 'You have not selected a reader',
+                'ru' => 'Вы не выбрали считывающее устройство'
+            ],
+            'You have not chosen any service' => [
+                'en' => 'You have not chosen any service',
+                'ru' => 'Вы никакую услугу не выбрали'
+            ],
+            'Your file is too large'=> [
+                'en' => 'Your file is too large',
+                'ru' => 'Ваш файл слишком большой'
             ]
         ];
     }
@@ -133,10 +154,11 @@ class PageCustomerCabinetAllparameters extends PageCustomerCabinet
         }
         return $mark .= $postfix;
     }
-    protected function prepareHTMLAttr($string)
+    private function getMessage($seen, $message)
     {
-        return str_replace(' ', '_', $string);
+        return ($message) ? $this->getText($this->lang, $message) : '';
     }
+    
     private function composeOptionElements()
     {
         $html = "<option disabled selected value='initial-state'>{$this->getText($this->lang, 'SelectReadingDevice')}</option>";
@@ -191,6 +213,7 @@ class PageCustomerCabinetAllparameters extends PageCustomerCabinet
                 <div class="block-selected-file__property">{$this->getText($this->lang, 'VehicleBrand')} - <span class="block-selected-file__value" id="selected-brand">$this->vehicleBrand</span></div>
                 <div class="block-selected-file__property">{$this->getText($this->lang, 'VehicleModel')} - <span class="block-selected-file__value" id="selected-model">$this->vehicleModel</span></div>
                 <div class="block-selected-file__property">{$this->getText($this->lang, 'SelectedECU')} - <span class="block-selected-file__value" id="selected-details">$this->ecu</span></div>
+                {$this->getNormalLinkNoLang('/ecu', $this->getText($this->lang, 'Back'), $this->pageName, [['name' => 'vehicle_type', 'value' => $this->vehicleType], ['name' => 'vehicle_brand', 'value' => $this->vehicleBrand], ['name' => 'vehicle_model', 'value' => $this->vehicleModel]], 'content__wrapper-blocks',  "block-select-file__button button button_back")}
             </div>
             <form class='content__wrapper-blocks' method="POST" action='/allparameters' enctype="multipart/form-data" id='form_treatment_file'>
                 <div class="content__block-select-options block-select-options" id="block-select-options">
@@ -207,6 +230,7 @@ class PageCustomerCabinetAllparameters extends PageCustomerCabinet
                     </div>
                 
                     <div class="block-select-options__option">
+                    {$this->getFormMessage('You have not selected a reader', $this->messageChosenNothingReadingDevice, 'form__message_red')}
                         <label class="block-select-options__block" for="reading-device">{$this->getText($this->lang, 'ReadingDevice')}
                             <select id="reading-device" name="reading_device">
                                 {$this->composeOptionElements()}
@@ -215,12 +239,14 @@ class PageCustomerCabinetAllparameters extends PageCustomerCabinet
                     </div>
                 
                     <div class="block-select-options__option">
+                    {$this->getFormMessage('Your file is too large', $this->messageFileTooLarge, 'form__message_red')}
                         <label class="block-select-options__block" for="vehicle-original-file">{$this->getText($this->lang, 'OriginalVehicleFileRequired')}
                             <input type="hidden" name="MAX_FILE_SIZE" value="{$GLOBALS['fileSizeFromCustomer']}">
                             <input id="vehicle-original-file" type="file" name="original_file">
                         </label>
                     </div>
                     <div class="block-select-options__block-checkboxes block-checkboxes" id="block_list_services">
+                    {$this->getFormMessage('You have not chosen any service', $this->messageChosenNothingService, 'form__message_red')}
                         {$this->composeInputElements()}
                     </div>
                     <div class="block-select-options__total-sum total-sum-block">

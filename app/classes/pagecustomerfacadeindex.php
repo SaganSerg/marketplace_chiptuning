@@ -125,7 +125,6 @@ class PageCustomerFacadeIndex extends PageCustomerFacade
         {$this->getFacadeHeader('index', $hiddenInputs)}
         <form class="main__form form" method="POST" action="/pay">
         {$this->getHiddenPageInput($this->pageName)}
-        {$this->getHiddenInput($this->saveInputValue('lang'), 'lang')}
             <fieldset class="form__block-form">
                 <legend class="form__title">{$this->getText($this->lang, 'FormTitleMain')}</legend>
                 {$this->getFormMessage('CookiesAgreeMain', $this->messageCookiesAgree)}
@@ -141,7 +140,7 @@ class PageCustomerFacadeIndex extends PageCustomerFacade
                 <input class="form__button button button__transparent" type="submit" value="{$this->getText($this->lang, 'ComeInMain')}">
             </fieldset>
         </form>
-        {$this->getNormalLink('/registration', "main__button button button__green", $this->getText($this->lang, "RegistrationMain"), 'Registration')}
+        {$this->getNormalLink('/sentmailregistration', "main__button button button__green", $this->getText($this->lang, "RegistrationMain"), $this->pageName)}
         {$this->getNormalLink('/rememberpassword', "main__button button button__green", $this->getText($this->lang, "RememberpasswordMain"), $this->pageName)}
         {$this->getFacadeFooter($this->pageName, $hiddenInputs)}
     

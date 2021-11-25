@@ -56,11 +56,11 @@ abstract class PageCustomerCabinet extends PageCustomer
     protected function getNavigation()
     {
         $pages = [
-            'pay' => 'BuyCoins', 
-            'treatment' => 'OrderFileProcessing',
-            'dealsdeals' => 'Deals',
-            'history' => 'History',
-            'profile' => 'Profile'
+            '/pay' => 'BuyCoins', 
+            '/treatment' => 'OrderFileProcessing',
+            '/dealsdeals' => 'Deals',
+            '/history' => 'History',
+            '/profile' => 'Profile'
         ];
         $realPage = strtolower($this->pageName);
         $html = <<<HTML
@@ -73,10 +73,14 @@ HTML;
         $classBit = "main-nav__link_currant";
         foreach($pages as $pageName => $place) {
             $classBit = strtolower($this->pageName) == $pageName ? 'main-nav__link_currant' : '';
-            $html .= "<li class='main-nav__item'>{$this->getNormalLink('/' . $pageName, 'main-nav__link ' . $classBit , $this->getText($this->lang, $place), $this->pageName)}</li>";
+            $html .= "<li class='main-nav__item'>{$this->getNormalLink($pageName, 'main-nav__link ' . $classBit , $this->getText($this->lang, $place), $this->pageName)}</li>";
         }
         $html .=  '</ul></nav>';
         return $html;
 
+    }
+    protected function prepareHTMLAttr($string)
+    {
+        return str_replace(' ', '_', $string);
     }
 }

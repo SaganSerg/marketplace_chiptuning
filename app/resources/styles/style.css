@@ -92,15 +92,15 @@ table {
     background-position: top left;
     background-repeat: no-repeat;
     background-clip: border-box;
-    background-size: 70%;
+    background-size: 100%;
     background-origin: border-box;
     background-color: transparent;
     display: inline-block;
     padding-top: 36px;
     padding-left: 3px;
-    color: #d40000;
+    color: black;
     text-decoration: none;
-    font-weight: 700;
+    font-weight: 400;
     border: 0;
 }
 .logo:hover {
@@ -804,6 +804,9 @@ table {
 }
 .button_next {
     background-color: green;
+}
+.button_back {
+    background-color: grey;
 }
 .block-select-options__comment textarea {
     width: 280px;

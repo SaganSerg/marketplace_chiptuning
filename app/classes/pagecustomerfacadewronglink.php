@@ -1,7 +1,7 @@
 <?php
-class PageCustomerFacadeContacts extends PageCustomerFacade
+class PageCustomerFacadeWronglink extends PageCustomerFacade
 {
-    protected $pageName = '/contacts';
+    protected $pageName = '/wronglink';
     protected const INPUT_ATTRIBUTE_NAME = [];
     function __construct(
         string $name,

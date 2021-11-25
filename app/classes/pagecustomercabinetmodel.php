@@ -15,6 +15,7 @@ class PageCustomerCabinetModel extends PageCustomerCabinet
         $this->vehicleModelList = $vehicleModelList;
         $this->vehicleType = $vehicleType;
         $this->vehicleBrand = $vehicleBrand;
+        $this->messageChosenNothing = $messageChosenNothing;
         parent::__construct($name, $customer_id, $email, $coins);
     }
     private function composeDictionaryMain() {
@@ -54,6 +55,10 @@ class PageCustomerCabinetModel extends PageCustomerCabinet
             'Further' => [
                 'en' => 'Further',
                 'ru' => 'Далее'
+            ],
+            'Back' => [
+                'en' => 'Back',
+                'ru' => 'Назад'
             ],
             'PlateOfVehicleOptional' => [
                 'en' => 'Plate of Vehicle (optional)',
@@ -106,6 +111,10 @@ class PageCustomerCabinetModel extends PageCustomerCabinet
             'SelectVehicleModel' => [
                 'en' => 'Select vehicle model',
                 'ru' => 'Выберите модель транспортного средства'
+            ],
+            'NothingSelected' => [
+                'en' => "Nothing selected",
+                'ru' => 'Ничего не выбрано'
             ]
         ];
     }
@@ -122,7 +131,8 @@ class PageCustomerCabinetModel extends PageCustomerCabinet
     {
         $html = "<option disabled selected value='initial-state'>{$this->getText($this->lang, 'SelectVehicleModel')}</option>";
         foreach ($this->vehicleModelList as $vehicleModel) {
-            $html .= "<option value = '$vehicleModel'>$vehicleModel</option>";
+            $vehicleModelWithUnderscore = $this->prepareHTMLAttr($vehicleModel);
+            $html .= "<option value = '$vehicleModelWithUnderscore'>$vehicleModel</option>";
         }
         return $html;
     }
@@ -146,9 +156,11 @@ class PageCustomerCabinetModel extends PageCustomerCabinet
                 <div class="block-selected-file__property">{$this->getText($this->lang, 'VehicleBrand')} - <span class="block-selected-file__value" id="selected-brand">$this->vehicleBrand</span></div>
                 <div class="block-selected-file__property">{$this->getText($this->lang, 'VehicleModel')} - <span class="block-selected-file__value" id="selected-model">{$this->getText($this->lang, 'NotSelected')}</span></div>
                 <div class="block-selected-file__property">{$this->getText($this->lang, 'SelectedECU')} - <span class="block-selected-file__value" id="selected-details">{$this->getText($this->lang, 'NotSelected')}</span></div>
+                {$this->getNormalLinkNoLang('/brand', $this->getText($this->lang, 'Back'), $this->pageName, [['name' => 'vehicle_type', 'value' => $this->vehicleType]], 'content__wrapper-blocks',  "block-select-file__button button button_back")}
             </div>
             <form class='content__wrapper-blocks' method="POST" action='/ecu'>
                 <div class="content__block-select-file block-select-file" id="block-vehicle-type">
+                    {$this->getFormMessage('NothingSelected', $this->messageChosenNothing, 'form__message_red')}
                     <label class="block-select-file__block">{$this->getText($this->lang, 'VehicleModel')}
                         <select class="block-select-file__select" name="vehicle_model">
                         {$this->composeOptionElements()}
@@ -159,6 +171,7 @@ class PageCustomerCabinetModel extends PageCustomerCabinet
                 </div>
                 
             </form>
+            
         </article>
         {$this->getFacadeFooter()}
 HTML;
@@ -167,4 +180,4 @@ HTML;
     {
         return $this->composeHTML();
     }
-}
+} // $this->vehicleBrand

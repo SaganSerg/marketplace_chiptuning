@@ -103,6 +103,10 @@ class PageCustomerCabinetBrand extends PageCustomerCabinet
             'NothingSelected' => [
                 'en' => "Nothing selected",
                 'ru' => 'Ничего не выбрано'
+            ],
+            'Back' => [
+                'en' => 'Back',
+                'ru' => 'Назад'
             ]
         ];
     }
@@ -119,7 +123,8 @@ class PageCustomerCabinetBrand extends PageCustomerCabinet
     {
         $html = "<option disabled selected value='initial-state'>{$this->getText($this->lang, 'SelectVehicleBrand')}</option>";
         foreach ($this->vehicleBrandList as $vehicleBrand) {
-            $html .= "<option value = '$vehicleBrand'>$vehicleBrand</option>";
+            $vehicleBrandWithUnderscore = $this->prepareHTMLAttr($vehicleBrand);
+            $html .= "<option value = '$vehicleBrandWithUnderscore'>$vehicleBrand</option>";
         }
         return $html;
     }
@@ -142,10 +147,11 @@ class PageCustomerCabinetBrand extends PageCustomerCabinet
                 <div class="block-selected-file__property">{$this->getText($this->lang, 'VehicleBrand')} - <span class="block-selected-file__value" id="selected-brand">{$this->getText($this->lang, 'NotSelected')}</span></div>
                 <div class="block-selected-file__property">{$this->getText($this->lang, 'VehicleModel')} - <span class="block-selected-file__value" id="selected-model">{$this->getText($this->lang, 'NotSelected')}</span></div>
                 <div class="block-selected-file__property">{$this->getText($this->lang, 'SelectedECU')} - <span class="block-selected-file__value" id="selected-details">{$this->getText($this->lang, 'NotSelected')}</span></div>
+                {$this->getNormalLinkNoLang('/treatment', $this->getText($this->lang, 'Back'), $this->pageName, [], 'content__wrapper-blocks',  "block-select-file__button button button_back")}
             </div>
             <form class='content__wrapper-blocks' method="POST" action='/model'>
                 <div class="content__block-select-file block-select-file">
-                {$this->getFormMessage('NothingSelected', $this->messageChosenNothing, 'form__message_red')}
+                    {$this->getFormMessage('NothingSelected', $this->messageChosenNothing, 'form__message_red')}
                     <label class="block-select-file__block">{$this->getText($this->lang, 'VehicleBrand')}
                         <select class="block-select-file__select" name="vehicle_brand">
                         {$this->composeOptionElements()}
@@ -154,8 +160,8 @@ class PageCustomerCabinetBrand extends PageCustomerCabinet
                     {$this->getHiddenInputBlock($this->arrForHiddenInputBlock())}
                     {$this->getSubmit($this->getText($this->lang, 'Further'), $this->pageName, "block-select-file__button button button_next")}
                 </div>
-                
             </form>
+            
         </article>
         {$this->getFacadeFooter()}
 HTML;

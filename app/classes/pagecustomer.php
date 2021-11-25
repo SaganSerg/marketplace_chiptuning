@@ -93,6 +93,14 @@ HTML;
 HTML;
     }
 
+    protected function getSubmitWithoutLang(string $text, string $pageName, string $class = null, string $id = null)
+    {
+        return <<<HTML
+        {$this->getHiddenInput($pageName, 'Page')}
+        <input class="$class" type="submit" value="$text" id="$id">
+HTML;
+    }
+
     protected function composeDictionaryHeader()
     {
         return [
@@ -105,8 +113,8 @@ HTML;
                 'ru' => 'У Вас не включен JavaScript. Если Вы его не включите, Вы не сможете пользоваться нашим сайтом.'
             ], 
             'logoHeader' => [
-                'en' => 'Briefly! Who are we!',
-                'ru' => 'Кратко! Кто мы такие!'
+                'en' => 'We make chip tuning',
+                'ru' => 'Мы делаем чип-тюнинг!'
             ], 
         ];
     }

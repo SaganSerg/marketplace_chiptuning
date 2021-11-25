@@ -58,6 +58,10 @@ class PageCustomerCabinetEcu extends PageCustomerCabinet
                 'en' => 'Further',
                 'ru' => 'Далее'
             ],
+            'Back' => [
+                'en' => 'Back',
+                'ru' => 'Назад'
+            ],
             'PlateOfVehicleOptional' => [
                 'en' => 'Plate of Vehicle (optional)',
                 'ru' => 'Плата транспортного средства (опционально)'
@@ -113,6 +117,10 @@ class PageCustomerCabinetEcu extends PageCustomerCabinet
             'SelectECU' => [
                 'en' => 'Select ECU',
                 'ru' => 'Выберите ECU'
+            ],
+            'NothingSelected' => [
+                'en' => "Nothing selected",
+                'ru' => 'Ничего не выбрано'
             ]
         ];
     }
@@ -124,10 +132,6 @@ class PageCustomerCabinetEcu extends PageCustomerCabinet
             $mark .= ucfirst($elem);
         }
         return $mark .= $postfix;
-    }
-    protected function prepareHTMLAttr($string)
-    {
-        return str_replace(' ', '_', $string);
     }
     private function composeOptionElements()
     {
@@ -158,9 +162,11 @@ class PageCustomerCabinetEcu extends PageCustomerCabinet
                 <div class="block-selected-file__property">{$this->getText($this->lang, 'VehicleBrand')} - <span class="block-selected-file__value" id="selected-brand">$this->vehicleBrand</span></div>
                 <div class="block-selected-file__property">{$this->getText($this->lang, 'VehicleModel')} - <span class="block-selected-file__value" id="selected-model">$this->vehicleModel</span></div>
                 <div class="block-selected-file__property">{$this->getText($this->lang, 'SelectedECU')} - <span class="block-selected-file__value" id="selected-details">{$this->getText($this->lang, 'NotSelected')}</span></div>
+                {$this->getNormalLinkNoLang('/model', $this->getText($this->lang, 'Back'), $this->pageName, [['name' => 'vehicle_type', 'value' => $this->vehicleType], ['name' => 'vehicle_brand', 'value' => $this->vehicleBrand]], 'content__wrapper-blocks',  "block-select-file__button button button_back")}
             </div>
             <form class='content__wrapper-blocks' method="POST" action='/allparameters'>
                 <div class="content__block-select-file block-select-file" id="block-vehicle-type">
+                    {$this->getFormMessage('NothingSelected', $this->messageChosenNothing, 'form__message_red')}
                     <label class="block-select-file__block" >ECU
                         <select class="block-select-file__select" name="ecu">
                         {$this->composeOptionElements()}
@@ -169,8 +175,8 @@ class PageCustomerCabinetEcu extends PageCustomerCabinet
                     {$this->getHiddenInputBlock($this->arrForHiddenInputBlock())}
                     {$this->getSubmit($this->getText($this->lang, 'Further'), $this->pageName, "block-select-file__button button button_next")}
                 </div>
-                
             </form>
+            
         </article>
         {$this->getFacadeFooter()}
 HTML;
