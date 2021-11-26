@@ -237,6 +237,9 @@ abstract class Controller
         return self::checkPostMethodValue('Page', $pageName);
     }
 
+    static function checkMethodPostAndPageNameAndReferer($pageName, $checkReferer) {
+        return self::checkMethodPostAndPageName($pageName) && isset($checkReferer) && $checkReferer;
+    }
     static function checkMethodPostAndPageNames(array $pageNames)
     {
         if (self::checkPostMethod()) {
@@ -475,6 +478,8 @@ abstract class Controller
             // если значение false, то значит это атака
             if (isset($_SERVER['HTTP_REFERER'])) {
                 $checkReferer = (stripos($_SERVER['HTTP_REFERER'], $GLOBALS['protocol'] . '://' . $GLOBALS['domain']) === 0);
+            } else {
+                $checkReferer = null;
             }
             // --- 
             foreach ($arrDateLinkCreation as $dateLinkCreation) {
@@ -554,9 +559,6 @@ abstract class Controller
                 case $email_for_registration_url :
                     $mark = $email_for_registration_url;
                 break;
-                // case '/maingate':
-                //     $mark = '/maingate';
-                // break;
             }
 /* 
 При описании маршрутизации страниц из внешней части нужно обязательно делать ссылку на саму себя, для переключения языка
@@ -1089,12 +1091,12 @@ abstract class Controller
                 }
             }
             if ($_SERVER['REQUEST_URI'] == '/maingate') {
-                if (self::checkMethodPostAndPageName('/maingate') && isset($checkReferer) && $checkReferer) {
-                    // return '"maingage Page" must be here'; Это нужно было для проверки, можно удалять
+                if (self::checkMethodPostAndPageNameAndReferer('/maingate', $checkReferer)) {
+                    //return '"maingage Page" must be here'; //Это нужно было для проверки, можно удалять
                 }
                 if ($_SERVER['REQUEST_METHOD'] == "GET") {
 
-                    // return "<form method='POST' action=''/maingate''><input type='hidden' value='/maingate' name='Page'><input type='submit'></form>"; это нужно было для проверки можно удалять
+                    //return "<form method='POST' action=''/maingate''><input type='hidden' value='/maingate' name='Page'><input type='submit'></form>"; //это нужно было для проверки можно удалять
                     
                 }
                 return self::getNotFound($mark);
