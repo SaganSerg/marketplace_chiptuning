@@ -554,9 +554,9 @@ abstract class Controller
                 case $email_for_registration_url :
                     $mark = $email_for_registration_url;
                 break;
-                case '/maingate':
-                    $mark = '/maingate';
-                break;
+                // case '/maingate':
+                //     $mark = '/maingate';
+                // break;
             }
 /* 
 При описании маршрутизации страниц из внешней части нужно обязательно делать ссылку на саму себя, для переключения языка
@@ -1088,7 +1088,7 @@ abstract class Controller
                     }
                 }
             }
-            if ($mark == '/maingate') {
+            if ($_SERVER['REQUEST_URI'] == '/maingate') {
                 if (self::checkMethodPostAndPageName('/maingate') && isset($checkReferer) && $checkReferer) {
                     // return '"maingage Page" must be here'; Это нужно было для проверки, можно удалять
                 }
@@ -1099,6 +1099,7 @@ abstract class Controller
                 }
                 return self::getNotFound($mark);
             }
+
             
             
             return self::getNotFound($mark);
