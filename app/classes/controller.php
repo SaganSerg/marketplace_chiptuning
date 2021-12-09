@@ -3,7 +3,7 @@ abstract class Controller
 {
     static private $pppp = '123456';
     static private $allCustomerCabinetPage = ['/allparameters', '/brand', '/dealsdeal', '/dealsdeals', '/ecu', '/history', '/model', '/pay', '/profile', '/treatment'];
-    static private $allCustomerFacadePage = ['/contacts', '/index', '/newpassword', '/notfound', '/rememberpassword', '/sentmail'];
+    static private $allCustomerFacadePage = ['/contacts', '/index', '/newpassword', '/notfound', '/rememberpassword', '/sentmail', '/sentmailregistration', '/messagesentmailregistration', '/termsuse', '/about', '/registration'];
     static private function getText($lang, $place, $dictionary) // $lang -- язык вида 'en'; $place -- это название массива являющегося элементом массива $date
     {
         if (isset($dictionary[$place][$lang])) {
@@ -126,6 +126,40 @@ abstract class Controller
         }
         return self::getNotFound($toPage);
     }
+
+
+    // данная функция применяется для маршрутизации по сайту когда при переходе на страницу не нужно передавать никаки дополнительных параметров т.е. когда контент целевой страницы не меняется, например, содержание главной страницы не меняется с какой страницы Вы бы на нее не перешли
+    static function routingSimplePage(array $withExceptionOf, string $toPage, bool $checkReferer, array ...$pageArr) // этот метод для страниц 'Notfound', 'About', 'Contacts', 'Termsuse'
+    // первый аргумент, это массив с перечнем $pageName с которых не должно быть переходов на страницу $toPage
+    // второй аргумент должен быть в виде /about т.е. в виде строки со слешем в начале как это сделано при свойствах $pageName классов унаследованных от PageCustomer
+    // это проверка заголовка referrer это защита от атак
+    // после третьего параметра идут массивы в которых указаны страницы с которых возможен переход на целевую страницу
+    {
+        if (self::checkMethodName('Page', 'POST', $_POST) && $checkReferer) {
+            $allPage = array_merge($pageArr);
+            $fromPageArr = [];
+            foreach (self::$allCustomerFacadePage as $customerFacadePageNumber => $customerFacadePageValue) {
+                foreach ($withExceptionOf as $page) {
+                    if ($page == $customerFacadePageValue) {
+                        $customerFacadePageValue = null;
+                    }
+                }
+                if ($customerFacadePageValue !== null) {
+                    $fromPageArr[] = $customerFacadePageValue;
+                }
+            }
+            foreach ($fromPageArr as $page) {
+                if ($_POST['Page'] == $page) {
+                    $preparedPageName = ucfirst(substr($toPage, 1)); // это вырезается первый слеш и делает первую букву большой, чтобы можно было сформировать имя класса
+                    $class = 'PageCustomerFacade' . $preparedPageName;
+                    return (new $class($toPage, null))->getHTML();
+                }
+            }
+        }
+        return self::getNotFound($toPage);
+    }
+    
+
     static private function getDealCard3(Model $model, string $mark)
     {
         self::startSessionWithCheck($GLOBALS['cookiesmanagement']);
@@ -473,6 +507,7 @@ abstract class Controller
                 "SELECT customer_password_recovery_date_of_link_creation, customer_password_recovery_id FROM customer_password_recovery WHERE customer_password_recovery_notwork = 0",
                 []
             );
+
             // это нужно для предотвращения от атаки CSRF
             // в маршрутизаторе потом нужно бедет проверять установлен ли переменная checkReferer и проверять ee значение
             // если значение false, то значит это атака
@@ -482,6 +517,7 @@ abstract class Controller
                 $checkReferer = null;
             }
             // --- 
+
             foreach ($arrDateLinkCreation as $dateLinkCreation) {
                 $linkExpirationDate = $dateLinkCreation['customer_password_recovery_date_of_link_creation'] + $GLOBALS['saveLinkPasswordTime'];
                 if ($linkExpirationDate < $date) {
@@ -491,21 +527,15 @@ abstract class Controller
                     );
                 }
             }
-            $customerPasswordRecoveryId = $model->getCustomerPasswordRecoveryId($_SERVER['REQUEST_URI']);
-            $customerPasswordRecoveryUrl = ($customerPasswordRecoveryId) ? $_SERVER['REQUEST_URI'] : '/wronglink';
-            $email_for_registration_id = $model->getRegistrationEmailId($_SERVER['REQUEST_URI']);
-            $email_for_registration_url = ($email_for_registration_id) ? $_SERVER['REQUEST_URI'] : '/wronglink';
-
+            $alterableURL = (
+                ($customerPasswordRecoveryUrl = ($customerPasswordRecoveryId = $model->getCustomerPasswordRecoveryId($_SERVER['REQUEST_URI'])) ? $_SERVER['REQUEST_URI'] : false)
+                ||
+                ($email_for_registration_url = ($email_for_registration_id = $model->getRegistrationEmailId($_SERVER['REQUEST_URI'])) ? $_SERVER['REQUEST_URI'] : false)
+            );
             $cookiesmanagement = $GLOBALS['cookiesmanagement'];
             $mark = 'Notfound';
             switch ($_SERVER['REQUEST_URI']) {
-                case '':
-                case '/':
-                case '/index':
-                case '/index.php':
-                case '/index.html':
-                    $mark = '/index';
-                break;
+                
                 case '/sentmailregistration':
                     $mark = '/sentmailregistration';
                 break;
@@ -553,28 +583,34 @@ abstract class Controller
                 break;
                 case '/sentmailregistration':
                     $mark = '/sentmailregistration';
-                case $customerPasswordRecoveryUrl :
-                    $mark = $customerPasswordRecoveryUrl;
-                break;
-                case $email_for_registration_url :
-                    $mark = $email_for_registration_url;
                 break;
             }
 /* 
 При описании маршрутизации страниц из внешней части нужно обязательно делать ссылку на саму себя, для переключения языка
 */
-            
-            if ($mark == '/index') {
+            if ($_SERVER['REQUEST_URI'] == '/index'     || 
+                $_SERVER['REQUEST_URI'] == ''           || 
+                $_SERVER['REQUEST_URI'] == '/'          || 
+                $_SERVER['REQUEST_URI'] == '/index.php' || 
+                $_SERVER['REQUEST_URI'] == '/index.html') {
+                $mark = '/index';
+
                 if ($_SERVER['REQUEST_METHOD'] == "GET") {
                     return (new PageCustomerFacadeIndex($mark, null))->getHTML();
                 }
-                if ($_SERVER['REQUEST_METHOD'] == "POST") {
-                    return (new PageCustomerFacadeIndex($mark, null))->getHTML();
-                }
-                if (self::checkMethodPostAndPageName('/index')) {
-                    return (new PageCustomerFacadeIndex($mark, null))->getHTML();
-                }
-                return self::getNotFound($mark);
+                return self::routingSimplePage([], $mark, $checkReferer, self::$allCustomerFacadePage, self::$allCustomerCabinetPage);
+            }
+
+            if ($_SERVER['REQUEST_URI'] == '/about') {
+                $mark = '/about';
+
+                return self::routingSimplePage([], $mark, $checkReferer, self::$allCustomerFacadePage);
+            }
+
+            if ($_SERVER['REQUEST_URI'] == '/contacts') {
+                $mark = '/contacts';
+
+                return self::routingSimplePage([], $mark, $checkReferer, self::$allCustomerFacadePage);
             }
             if ($mark == '/sentmailregistration') {
                 if (self::checkMethodPostAndPageName('/index')) {
@@ -658,19 +694,6 @@ abstract class Controller
                     else { // заглушка, когда будет работать почта удалить
                         return (new PageCustomerFacadeMessagesentmailregistration($mark, null, $email_for_registration_email))->getHTML(); // заглушка, когда будет работать почта удалить
                     } // заглушка, когда будет работать почта удалить
-                }
-                return self::getNotFound($mark);
-            }
-            if ($mark == $email_for_registration_url) {
-                $registrationEmail = $model->getElements(
-                    "SELECT email_for_registration_email FROM email_for_registration WHERE email_for_registration_id = ?",
-                    [$email_for_registration_id]
-                )[0]['email_for_registration_email'];
-                if ($_SERVER['REQUEST_METHOD'] == "GET") {
-                    return (new PageCustomerFacadeRegistration($mark, null, $registrationEmail))->getHTML();
-                }
-                if (self::checkMethodPostAndPageName('/registration')) {
-                    return (new PageCustomerFacadeRegistration($mark, null, $registrationEmail))->getHTML();
                 }
                 return self::getNotFound($mark);
             }
@@ -1039,26 +1062,8 @@ abstract class Controller
                     return (new PageCustomerFacadeSentmail($mark, null))->getHTML();
                 }
             }
-            // if ($mark == '/sentmailregistration') {
-            //     if (self::checkMethodPostAndPageName('/index')) {
-            //         return (new PageCustomerFacadeSentmailregistration($mark, null))->getHTML();
-            //     }
-            //     if (self::checkMethodPostAndPageName('/sentmailregistration')) {
-            //         return (new PageCustomerFacadeSentmailregistration($mark, null))->getHTML();
-            //     }
-            //     return self::getNotFound($mark);
-            // }
-            if ($mark == $customerPasswordRecoveryUrl) {
-                if ($mark == '/wronglink') {
-                    if ($_SERVER['REQUEST_METHOD'] == "GET") {
-                        return 'Ваша ссылка либо уже использована, либо просрочена';
-                    }
-                    if (self::checkMethodPostAndPageName('/wronglink')) {
-                        return 'Ваша ссылка либо уже использована, либо просрочена';
-                    }
-                    return self::getNotFound($mark);
-                }
-                if ($customerPasswordRecoveryId) {
+            if ($alterableURL) {
+                if ($mark = $customerPasswordRecoveryUrl) {
                     $customer_id = $model->getElements(
                         "SELECT customer_id FROM customer_password_recovery WHERE customer_password_recovery_id = ?",
                         [$customerPasswordRecoveryId]
@@ -1089,22 +1094,33 @@ abstract class Controller
                         return self::returnPageCustomerCabinetPayWithStaingId($mark, $customer_email, $pass, $model, $cookiesmanagement);
                     }
                 }
+                if ($mark = $email_for_registration_url) {
+                    $registrationEmail = $model->getElements(
+                        "SELECT email_for_registration_email FROM email_for_registration WHERE email_for_registration_id = ?",
+                        [$email_for_registration_id]
+                    )[0]['email_for_registration_email'];
+                    if ($_SERVER['REQUEST_METHOD'] == "GET") {
+                        return (new PageCustomerFacadeRegistration($mark, null, $registrationEmail))->getHTML();
+                    }
+                    if (self::checkMethodPostAndPageName('/registration')) {
+                        return (new PageCustomerFacadeRegistration($mark, null, $registrationEmail))->getHTML();
+                    }
+                    return self::getNotFound($mark);
+                }
             }
             if ($_SERVER['REQUEST_URI'] == '/maingate') {
                 if (self::checkMethodPostAndPageNameAndReferer('/maingate', $checkReferer)) {
-                    //return '"maingage Page" must be here'; //Это нужно было для проверки, можно удалять
+                    return '"maingage Page" must be here'; //Это нужно было для проверки, можно удалять
                 }
                 if ($_SERVER['REQUEST_METHOD'] == "GET") {
 
-                    //return "<form method='POST' action=''/maingate''><input type='hidden' value='/maingate' name='Page'><input type='submit'></form>"; //это нужно было для проверки можно удалять
+                    return "<form method='POST' action=''/maingate''><input type='hidden' value='/maingate' name='Page'><input type='submit'></form>"; //это нужно было для проверки можно удалять
                     
                 }
                 return self::getNotFound($mark);
             }
-
             
-            
-            return self::getNotFound($mark);
+            return self::getNotFound($mark); // это последний бастион если ни одно условие не совпало
 
         } catch (Exception $e) {
             echo $e->getMessage();

@@ -1,7 +1,7 @@
 <?php
 abstract class Page 
 {
-    protected $name;
+    protected $name; // это метка
 
     function __construct(string $name)
     {

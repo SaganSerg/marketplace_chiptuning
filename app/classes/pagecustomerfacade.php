@@ -34,7 +34,7 @@ abstract class PageCustomerFacade extends PageCustomer
     private function getElementLangSwitcher(string $lang, string $classPrefix, string $value, string $blockInputs = null) : string
     {
         return <<<HTML
-            <form class="lang-switcher__wrapper-input" action="{$this->pageName}" method="POST">
+            <form class="lang-switcher__wrapper-input" action="{$this->name}" method="POST">
                 {$this->getHiddenInputSet($lang, $this->pageName, $blockInputs)}
                 <input class="lang-switcher__item lang-switcher__item_$classPrefix" type="submit" value="$value">
             </form>
