@@ -40,6 +40,9 @@ CREATE TABLE provider
     provider_status CHAR(15) NOT NULL,
     provider_password CHAR(255) NOT NULL
 );
+/* 
+INSERT INTO provider (provider_login, provider_firstname, provider_secondname, provider_registration_date, provider_status, provider_password) VALUES ('Vasa', 'Vasiliy', 'Ivanov', 1639056038, 'file_treatment', '$2y$10$9heuJzptkGBWibXoIjiw9.rCHmeo1Mb.ZjA194pr9Wt/HEl3Zvd2e' )
+*/
 CREATE TABLE valuta_exchange_rate
 (
     valuta_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -87,6 +90,18 @@ CREATE TABLE customer_order
 
     FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
     FOREIGN KEY (service_type_id) REFERENCES service_type(service_type_id),
+    FOREIGN KEY (provider_id) REFERENCES provider(provider_id)
+);
+
+CREATE TABLE change_order_status_provider
+(
+    change_order_status_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    change_order_status_date BIGINT NOT NULL,
+    change_order_status_status CHAR(15) NOT NULL,
+    provider_id INT UNSIGNED NOT NULL,
+    customer_order_id INT UNSIGNED NOT NULL,
+
+    FOREIGN KEY (customer_order_id) REFERENCES customer_order(customer_order_id),
     FOREIGN KEY (provider_id) REFERENCES provider(provider_id)
 );
 
@@ -200,7 +215,8 @@ CREATE TABLE file_path
     file_path_date BIGINT NOT NULL,
     file_path_path CHAR(255) NOT NULL,
     file_path_what_file CHAR(50) NOT NULL, /* имеется ввиду здесь храниться информация о том, что это за файл. Переданный на обработку или наоборот уже обработанный */
-
+    file_path_checksum CHAR(255) NOT NULL,
+    
     FOREIGN KEY (customer_order_id) REFERENCES customer_order(customer_order_id)
 );
 --
@@ -222,6 +238,12 @@ INSERT INTO service_type (service_type_name) VALUES ('consultation');
 INSERT INTO service (service_name) VALUES ('SCR-off');
 INSERT INTO service (service_name) VALUES ('Power');
 INSERT INTO service (service_name) VALUES ('DTC-off');
+
+INSERT INTO service (service_name) VALUES ('EGR-off');
+INSERT INTO service (service_name) VALUES ('CAT-off');
+INSERT INTO service (service_name) VALUES ('guc artrima mod');
+INSERT INTO service (service_name) VALUES ('checksum correction');
+INSERT INTO service (service_name) VALUES ('DPF-off');
 --
 --
 INSERT INTO condition_id (condition_id_works) VALUES(1);
@@ -295,12 +317,12 @@ INSERT INTO condition_value (condition_id_id, data_name, data_value, service_typ
 );
 INSERT INTO condition_service (condition_id_id, service_id, condition_service_price) VALUES (
     (SELECT condition_id_id FROM condition_id ORDER BY condition_id_id DESC LIMIT 1),
-    (SELECT service_id FROM service WHERE service_name = 'egr off'),
+    (SELECT service_id FROM service WHERE service_name = 'EGR-off'),
     200
 );
 INSERT INTO condition_service (condition_id_id, service_id, condition_service_price) VALUES (
     (SELECT condition_id_id FROM condition_id ORDER BY condition_id_id DESC LIMIT 1),
-    (SELECT service_id FROM service WHERE service_name = 'cat off'),
+    (SELECT service_id FROM service WHERE service_name = 'CAT-off'),
     100
 );
 INSERT INTO condition_service (condition_id_id, service_id, condition_service_price) VALUES (
@@ -315,7 +337,7 @@ INSERT INTO condition_service (condition_id_id, service_id, condition_service_pr
 );
 INSERT INTO condition_service (condition_id_id, service_id, condition_service_price) VALUES (
     (SELECT condition_id_id FROM condition_id ORDER BY condition_id_id DESC LIMIT 1),
-    (SELECT service_id FROM service WHERE service_name = 'dpf off'),
+    (SELECT service_id FROM service WHERE service_name = 'DPF-off'),
     300
 );
 
@@ -359,7 +381,7 @@ INSERT INTO condition_service (condition_id_id, service_id, condition_service_pr
 );
 INSERT INTO condition_service (condition_id_id, service_id, condition_service_price) VALUES (
     (SELECT condition_id_id FROM condition_id ORDER BY condition_id_id DESC LIMIT 1),
-    (SELECT service_id FROM service WHERE service_name = 'dpf off'),
+    (SELECT service_id FROM service WHERE service_name = 'DPF-off'),
     300
 );
 
@@ -392,12 +414,12 @@ INSERT INTO condition_value (condition_id_id, data_name, data_value, service_typ
 );
 INSERT INTO condition_service (condition_id_id, service_id, condition_service_price) VALUES (
     (SELECT condition_id_id FROM condition_id ORDER BY condition_id_id DESC LIMIT 1),
-    (SELECT service_id FROM service WHERE service_name = 'egr off'),
+    (SELECT service_id FROM service WHERE service_name = 'EGR-off'),
     200
 );
 INSERT INTO condition_service (condition_id_id, service_id, condition_service_price) VALUES (
     (SELECT condition_id_id FROM condition_id ORDER BY condition_id_id DESC LIMIT 1),
-    (SELECT service_id FROM service WHERE service_name = 'cat off'),
+    (SELECT service_id FROM service WHERE service_name = 'CAT-off'),
     100
 );
 INSERT INTO condition_service (condition_id_id, service_id, condition_service_price) VALUES (
@@ -407,7 +429,7 @@ INSERT INTO condition_service (condition_id_id, service_id, condition_service_pr
 );
 INSERT INTO condition_service (condition_id_id, service_id, condition_service_price) VALUES (
     (SELECT condition_id_id FROM condition_id ORDER BY condition_id_id DESC LIMIT 1),
-    (SELECT service_id FROM service WHERE service_name = 'dpf off'),
+    (SELECT service_id FROM service WHERE service_name = 'DPF-off'),
     300
 );
 
@@ -441,12 +463,12 @@ INSERT INTO condition_value (condition_id_id, data_name, data_value, service_typ
 );
 INSERT INTO condition_service (condition_id_id, service_id, condition_service_price) VALUES (
     (SELECT condition_id_id FROM condition_id ORDER BY condition_id_id DESC LIMIT 1),
-    (SELECT service_id FROM service WHERE service_name = 'egr off'),
+    (SELECT service_id FROM service WHERE service_name = 'EGR-off'),
     200
 );
 INSERT INTO condition_service (condition_id_id, service_id, condition_service_price) VALUES (
     (SELECT condition_id_id FROM condition_id ORDER BY condition_id_id DESC LIMIT 1),
-    (SELECT service_id FROM service WHERE service_name = 'cat off'),
+    (SELECT service_id FROM service WHERE service_name = 'CAT-off'),
     100
 );
 INSERT INTO condition_service (condition_id_id, service_id, condition_service_price) VALUES (
@@ -484,12 +506,12 @@ INSERT INTO condition_value (condition_id_id, data_name, data_value, service_typ
 );
 INSERT INTO condition_service (condition_id_id, service_id, condition_service_price) VALUES (
     (SELECT condition_id_id FROM condition_id ORDER BY condition_id_id DESC LIMIT 1),
-    (SELECT service_id FROM service WHERE service_name = 'egr off'),
+    (SELECT service_id FROM service WHERE service_name = 'EGR-off'),
     200
 );
 INSERT INTO condition_service (condition_id_id, service_id, condition_service_price) VALUES (
     (SELECT condition_id_id FROM condition_id ORDER BY condition_id_id DESC LIMIT 1),
-    (SELECT service_id FROM service WHERE service_name = 'cat off'),
+    (SELECT service_id FROM service WHERE service_name = 'CAT-off'),
     100
 );
 INSERT INTO condition_service (condition_id_id, service_id, condition_service_price) VALUES (
@@ -659,6 +681,8 @@ SELECT condition_value_id FROM condition_value WHERE data_name = 'vehicle type' 
 SELECT condition_value_id FROM condition_value WHERE data_name = 'vehicle brand' AND data_value = 'bmw';
 SELECT condition_value_id FROM condition_value WHERE data_name = 'vehicle model' AND data_value = 'x6';
 
-
+-- регисрация нового сотрудника
+INSERT INTO provider (provider_login, provider_firstname, provider_secondname, provider_registration_date, provider_status, provider_password) VALUES ('Vasa', 'Vasiliy', 'Ivanov', 1639056038, 'file_treatment', '$2y$10$mabqiowX1cpNsPYy5B60KOxM9xizdF7wMkd3wCm3qT2/7b3GNCUiK');
+INSERT INTO provider (provider_login, provider_firstname, provider_secondname, provider_registration_date, provider_status, provider_password) VALUES ('Peta', 'Peter', 'Ivanov', 1639056038, 'file_treatment', '$2y$10$mabqiowX1cpNsPYy5B60KOxM9xizdF7wMkd3wCm3qT2/7b3GNCUiK');
 --
 --

@@ -1,7 +1,7 @@
 <?php
 class PageCustomerFacadeNotfound extends PageCustomerFacade
 {
-    protected $pageName = 'Notfound';
+    protected $pageName = '/notfound';
     protected const INPUT_ATTRIBUTE_NAME = [];
     function __construct(
         string $name, $customer_id, array $arr = []

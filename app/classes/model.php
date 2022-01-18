@@ -456,6 +456,20 @@ class Model
             $appDB->commit();
         }
     }
+    function updateElements($query, $parameters)
+    {
+        try {
+            $appDB = $this->appDB();
+            $appDB->beginTransaction();
+            $result = $appDB->prepare($query);
+            $exec = $result->execute($parameters);
+            $appDB->commit();
+            return $exec; // возвращает количество модифицированных строк
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+            $appDB->commit();
+        }
+    }
     function checkEmail($email)
     {
         $query = $this->getElements(
@@ -617,20 +631,7 @@ class Model
     //     $appDB->commit();
     //     return $require;
     // }
-    function updateElements($query, $parameters)
-    {
-        try {
-            $appDB = $this->appDB();
-            $appDB->beginTransaction();
-            $result = $appDB->prepare($query);
-            $exec = $result->execute($parameters);
-            $appDB->commit();
-            return $exec; // возвращает количество модифицированных строк
-        } catch (PDOException $e) {
-            echo $e->getMessage();
-            $appDB->commit();
-        }
-    }
+    
     function getOneElementArr($query, $parameters, $fieldName) { 
         try {
             $appDB = $this->appDB();
