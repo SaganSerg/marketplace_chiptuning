@@ -46,7 +46,7 @@ HTML;
             $html .= '<ul class="provider-main-menu">';
             foreach ($linksArr as $elem) {
                 $activeButton = $this->pageName == $elem['pageName'] ? 'provider-normal-link__button_not-active' : '';
-                $html .= "<li class='provider-main-menu__element'>{$this->normalLink('provider-normal-link', 'provider-normal-link__button '. $activeButton, $elem['action'], $elem['caption'], ['Page' => $this->pageName])}</li>";
+                $html .= "<li class='provider-main-menu__element'>{$this->normalLink('in-header', 'in-header '. $activeButton, $elem['action'], $elem['caption'], ['Page' => $this->pageName])}</li>";
             }
             $html .= '</ul>';
         }
@@ -63,11 +63,11 @@ HTML;
             <title>Рабочая область</title>
             <link rel="stylesheet" href="/app/resources/styles/style.css">
         </head>
-        <body class="">
-            <header class="">
+        <body class="provider-page">
+            <header class="provider-header">
                 {$this->headerLink()}
             </header>
-            <main class="">
+            <main class="provider-main">
 HTML;
     }
     protected function getHeader()
@@ -83,7 +83,7 @@ HTML;
     {
         return <<<HTML
                 </main>
-            <footer class="">
+            <footer class="provider-footer">
                 
             </footer>
             <script src="/app/resources/scripts/script.js"></script>

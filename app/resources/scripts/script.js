@@ -393,45 +393,50 @@ function printModelOptions(vehicle, brand) {
         if (document.querySelector('article.content_big_file')) {
             fileDownloadingManagement();
         }
-        if (document.querySelector('article.content-provider_deal')) {
+        if (document.querySelector('article.content-provider-deal')) {
             fileDownloadingManagementProvider();
             fileDownloadinChecksumProvider();
         }
     });
 })();
 function fileDownloadingManagementProvider() {
-    document.getElementById('treated-file').addEventListener('change', function(){
-        var file = this.files[0];
-        var reader = new FileReader();
-        reader.readAsArrayBuffer(file);
-        reader.onload = function() {
-            var result = reader.result;
-            var view = new Uint8Array(result);
-            document.getElementById('checksum-treated-file').value = crc16MODBUS(view);
-        }
-    });
+    if ($elem = document.getElementById('treated-file')) {
+        $elem.addEventListener('change', function(){
+            var file = this.files[0];
+            var reader = new FileReader();
+            reader.readAsArrayBuffer(file);
+            reader.onload = function() {
+                var result = reader.result;
+                var view = new Uint8Array(result);
+                document.getElementById('checksum-treated-file').value = crc16MODBUS(view);
+            }
+        });
+    }
+    
 }
 
 function fileDownloadinChecksumProvider()
 {
-    document.getElementById('downloading-file').addEventListener('change', function() {
-        var file = this.files[0];
-        var reader = new FileReader();
-        reader.readAsArrayBuffer(file);
-        reader.onload = function () {
-            var result = reader.result;
-            var view = new Uint8Array(result);
-            let checksumOnServer = document.getElementById('downloading-file-checksum').textContent;
-            let checksumOnClient = crc16MODBUS(view);
-            if (checksumOnServer === 'No file') {
-                document.getElementById('downloading-file-no-file').classList.remove('hide');
-            } else if (checksumOnServer == checksumOnClient) {
-                document.getElementById('downloading-file-checksum-message-ok').classList.remove('hide');
-            } else {
-                document.getElementById('downloading-file-checksum-message-trouble').classList.remove('hide');
+    if ($elem = document.getElementById('downloading-file')) {
+        $elem.addEventListener('change', function() {
+            var file = this.files[0];
+            var reader = new FileReader();
+            reader.readAsArrayBuffer(file);
+            reader.onload = function () {
+                var result = reader.result;
+                var view = new Uint8Array(result);
+                let checksumOnServer = document.getElementById('downloading-file-checksum').textContent;
+                let checksumOnClient = crc16MODBUS(view);
+                if (checksumOnServer === 'No file') {
+                    document.getElementById('downloading-file-no-file').classList.remove('hide');
+                } else if (checksumOnServer == checksumOnClient) {
+                    document.getElementById('downloading-file-checksum-message-ok').classList.remove('hide');
+                } else {
+                    document.getElementById('downloading-file-checksum-message-trouble').classList.remove('hide');
+                }
             }
-        }
-    });
+        });
+    }
 }
 function fileDownloadingManagement() {
     document.getElementById('vehicle-original-file').addEventListener('change', function() {

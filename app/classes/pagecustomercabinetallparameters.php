@@ -229,8 +229,8 @@ class PageCustomerCabinetAllparameters extends PageCustomerCabinet
                         </label>
                     </div>
                 
-                    <div class="block-select-options__option">
                     {$this->getFormMessage('You have not selected a reader', $this->messageChosenNothingReadingDevice, 'form__message_red')}
+                    <div class="block-select-options__option">
                         <label class="block-select-options__block" for="reading-device">{$this->getText($this->lang, 'ReadingDevice')}
                             <select id="reading-device" name="reading_device">
                                 {$this->composeOptionElements()}
@@ -238,15 +238,17 @@ class PageCustomerCabinetAllparameters extends PageCustomerCabinet
                         </label>
                     </div>
                 
-                    <div class="block-select-options__option">
+
                     {$this->getFormMessage('Your file is too large', $this->messageFileTooLarge, 'form__message_red')}
+                    <div class="block-select-options__option">
                         <label class="block-select-options__block" for="vehicle-original-file">{$this->getText($this->lang, 'OriginalVehicleFileRequired')}
                             <input type="hidden" name="MAX_FILE_SIZE" value="{$GLOBALS['fileSizeFromCustomer']}">
                             <input id="vehicle-original-file" type="file" name="original_file">
                         </label>
                     </div>
-                    <div class="block-select-options__block-checkboxes block-checkboxes" id="block_list_services">
+
                     {$this->getFormMessage('You have not chosen any service', $this->messageChosenNothingService, 'form__message_red')}
+                    <div class="block-select-options__block-checkboxes block-checkboxes" id="block_list_services">
                         {$this->composeInputElements()}
                     </div>
                     <div class="block-select-options__total-sum total-sum-block">

@@ -337,7 +337,345 @@ table {
     color: white;
     cursor: pointer;
 }
+/* provider */
 
+.provider-page {
+    width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding-right: 20px;
+    padding-left: 20px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border-right: 1px solid black;
+    border-left: 1px solid black;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+
+}
+.provider-header {
+    background-color: black;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+/* .provider-main-menu {
+    
+} */
+/* .provider-main {
+
+} */
+.provider-main-menu__element {
+    display: inline;
+}
+.in-header.normal-link-provider {
+    display: inline;
+    margin-right: 20px;
+}
+.in-header.normal-link-provider__button {
+    display: inline;
+    border: 0;
+    padding: 0;
+    color: white;
+    background-color: transparent;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.in-header.normal-link-provider__button:hover {
+    cursor: pointer;
+}
+/* .provider-footer {
+
+} */
+.in-header.provider-normal-link__button_not-active {
+    cursor: default;
+    pointer-events: none;
+    color: gray;
+}
+.provider-main__title {
+    text-align: center;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+/* .provider-main__article {
+
+} */
+.provider-article {
+    display: flex;
+}
+.provider-article__element {
+    width: 500px;
+}
+.provider-deals {
+    padding: 10px;
+}
+.provider-deals__main-title {
+    text-align: center;
+    margin-bottom: 30px;
+}
+.provider-deals__title {
+    margin-bottom: 20px;
+    padding-top: 1px;
+}
+.provider-deals__deals-list {
+    margin-bottom: 15px;
+}
+.providel-deals__deals-list-element {
+    margin-bottom: 10px;
+}
+.normal-link-provider__button.provider-deal {
+    width: 100%;
+    border-radius: 0;
+    border: 1px solid black;
+    background-color: transparent;
+}
+.normal-link-provider__button.provider-deal:hover {
+    cursor: pointer;
+    background-color: black;
+    color: white;
+}
+.gate-form {
+    width: 300px;
+}
+.provider-gate__message {
+    color: red;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+/* .provider-gate-form {
+    
+} */
+.provider-gate-form__label {
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+.provider-gate-form__input {
+    margin-bottom: 30px;
+}
+.provider-gate-form__submit {
+    display: block;
+    color: white;
+    border-radius: 0;
+    background-color: black;
+    padding: 10px;
+    border: 1px solid black;
+}
+.provider-gate-form__submit:hover {
+    cursor: pointer;
+    color: black;
+    background-color: white;
+}
+.provider-form-search {
+    padding: 30px;
+}
+.provider-form-search__inputs-block {
+
+}
+.provider-inputs-block {
+    border: 1px solid black;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+/* .provider-inputs-block__title {
+
+} */
+/* .provider-inputs-block__input {
+
+} */
+/* .provider-inputs-block__select-block {
+
+} */
+/* .provider-select-block {
+
+} */
+/* .provider-select-block__option {
+
+} */
+.provider-form-search__submit {
+    background-color: black;
+    border-radius: 0;
+    border: 1px solid black;
+    color: white;
+    padding: 5px;
+}
+.provider-form-search__submit:hover {
+    color: black;
+    background-color: white;
+    cursor: pointer;
+}
+.provider-button-download__block {
+    padding: 10px;
+    border: 1px solid black;
+    margin-bottom: 20px;
+}
+.provider-button-download__submit {
+    border-radius: 0;
+    border: 1px solid black;
+    padding: 5px;
+    color: white;
+    background-color: black;
+}
+.provider-button-download__submit:hover {
+    cursor: pointer;
+    color: black;
+    background-color: white;
+}
+.provider-checksum-block {
+    border: 1px solid black;
+    margin-bottom: 20px;
+    padding: 10px;
+    position: relative;
+}
+.provider-checksum-block__title {
+    margin-bottom: 10px;
+    position: relative;
+    top: -20px;
+    background-color: white;
+    width: 37%;
+}
+.provider-checksum-block__message {
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+.provider-checksum-block__message_ok {
+    color: green;
+}
+.provider-checksum-block__message_trouble {
+    color: red;
+}
+.provider-checksum-block__submit {
+    border-radius: 0;
+    border: 1px solid black;
+    color: white;
+    background-color: black;
+    padding: 5px;
+    font-size: 0.8rem;
+    display: inline-block;
+}
+.provider-checksum-block__submit:hover {
+    background-color: white;
+    color: black;
+    cursor: pointer;
+}
+.provider-download-treated-file-form__block {
+    border: 1px solid black;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+.provider-download-treated-file-form__button-choose-file,
+.provider-form-textarea__submit,
+.provider-button-make-my-deal-form__submit,
+.provider-button-change-status_submit {
+    border: 1px solid black;
+    background-color: black;
+    color: white;
+    padding: 5px;
+    font-size: 0.8rem;
+    margin-right: 20px;
+}
+.provider-download-treated-file-form__button-choose-file:hover,
+.provider-form-textarea__submit:hover,
+.provider-button-make-my-deal-form__submit:hover,
+.provider-button-change-status_submit:hover {
+    cursor: pointer;
+    background-color: white;
+    color: black;
+}
+.provider-download-treated-file-form__button-upload {
+    border-radius: 0;
+    border: 1px solid black;
+    color: white;
+    background-color: black;
+    padding: 5px;
+    font-size: 0.8rem;
+    display: inline-block;
+}
+.provider-download-treated-file-form__button-upload:hover {
+    cursor: pointer;
+    background-color: white;
+    color: black;
+}
+.provider-download-treated-file-form__message {
+    margin-bottom: 10px;
+    color: red;
+}
+.provider-messages__message {
+    margin: 10px;
+    border: 1px solid;
+    padding: 10px;
+    position: relative;
+}
+.provider-messages__message_customer {
+    margin-left: 50px;
+    border-color: green;
+}
+.provider-messages__message_provider {
+    margin-right: 50px;
+    border-color: blue;
+}
+.provider-seen-button {
+    display: block;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+.provider-seen-button__submit {
+    border-radius: 0;
+    border: 1px solid green;
+    color: white;
+    background-color: green;
+    padding: 2px;
+    font-size: 0.7rem;
+}
+.provider-seen-button__submit:hover {
+    cursor: pointer;
+    background-color: white;
+    color: green;
+}
+.provider-form-textarea__field {
+    width: 100%;
+    margin-bottom: 20px;
+}
+/* content-provider-deal */
+.content-provider-deal {
+    margin-bottom: 40px;
+}
+.content-provider-deal__title {
+    margin-bottom: 20px;
+}
+.content-provider-deal__customer-data,
+.content-provider-deal__parameters,
+.content-provider-deal__ordered {
+    margin-bottom: 20px;
+}
+.provider-customer-data,
+.provider-deal-data,
+.provider-deal-parameters,
+.provider-deal-ordered {
+    padding: 10px;
+}
+.provider-customer-data__title,
+.provider-deal-data__title,
+.provider-deal-parameters__title,
+.provider-deal-ordered__title {
+    margin-bottom: 20px;
+}
+.provider-customer-data__data-element,
+.provider-deal-parameters__element,
+.provider-deal-ordered__element {
+    margin-bottom: 10px;
+}
+.provider-deal-data__data-list,
+.provider-customer-data__data-list,
+.provider-deal-parameters__list,
+.provider-deal-ordered__list {
+    margin-bottom: 20px;
+}
+.provider-deal-data__data-element {
+    margin-bottom: 10px;
+}
 @media screen and (min-width: 1000px) {
     .document {
         font-size: 16px;
@@ -758,6 +1096,9 @@ table {
 .profile-form__submit:hover {
     color: green;
     background-color: white;
+}
+.provider-button-make-my-deal-form {
+    display: inline-block;
 }
 @media screen and (min-width: 320px) {
     .main__content {

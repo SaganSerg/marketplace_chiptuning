@@ -279,6 +279,7 @@ class PageCustomerCabinetDealsdeal extends PageCustomerCabinetDeals
         if ($this->dealSpecification['customer_order_status'] == 'done') {
             return "<form class='content__form-button form-button' method='POST' action='/uploadprovfile'>
                         <input type='hidden' name='Page' value='{$this->pageName}'>
+                        <input type='hidden' name='customer_order_id' value='{$this->customer_order_id}'>
                         <button class='form-button__button' type='submit'>{$this->getText($this->lang, 'UploadFile')}</button>
                     </form>";
         }

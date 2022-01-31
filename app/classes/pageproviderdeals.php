@@ -13,11 +13,11 @@ class PageProviderDeals extends PageProvider
     }
     private function getMessages()
     {
-        $html = '<div>';
+        $html = '<div class="provider-gate__block-message">';
         if ($this->messages) {
             foreach($this->messages as $message) {
                 if ($message['flag']) {
-                    $html .= '<div>' . $message['text'] . '</div>';
+                    $html .= '<div  class="provider-gate__message">' . $message['text'] . '</div>';
                 }
             }
         }
@@ -26,8 +26,8 @@ class PageProviderDeals extends PageProvider
     private function deals(array $deals)
     {
         $html = '';
-        $classForm = '';
-        $classButton = '';
+        $classForm = 'provider-deal';
+        $classButton = 'provider-deal';
         foreach ($deals as $deal) {
             
             $action = '/deal';
@@ -40,7 +40,7 @@ class PageProviderDeals extends PageProvider
                 'customer_order_id' => $deal['customer_order_id'],
                 'Page' => $this->pageName
             ];
-            $html .= "<li>{$this->normalLink($classForm, $classButton, $action, $caption, $parameters)}</li>";
+            $html .= "<li class='providel-deals__deals-list-element'>{$this->normalLink($classForm, $classButton, $action, $caption, $parameters)}</li>";
         }
         return $html;
     }
@@ -52,33 +52,38 @@ class PageProviderDeals extends PageProvider
     {
         return <<<HTML
         {$this->getHeader()}
-        <h1>Все ваши сделки</h1>
+        <h1 class='provider-main__title'>Выбрать Ваши сделки</h1>
         {$this->getMessages()}
-        <form method="POST">
+        <form class="provider-form-search" method="POST">
             <input type="hidden" name="Page" value="{$this->pageName}">
-            <fieldset>
-                <legend>Диапазон времени</legend>
-                <input type='date' name='datestart'>
-                <input type='date' name='dateend'>
+            <fieldset class="provider-form-search__inputs-block provider-inputs-block">
+                <legend class="provider-inputs-block__title">Диапазон времени</legend>
+                <input class="provider-inputs-block__input" type='date' name='datestart'>
+                <input class="provider-inputs-block__input" type='date' name='dateend'>
             </fieldset>
-
-            <input type='number' name='customer_id'>
-
-            <select name='customer_order_status[]' multiple>
-                <option value="{$GLOBALS['paidDealStatus']}">Оплачена</option>
-                <option value="{$GLOBALS['beingDoneDealStatus']}">В работе</option>
-                <option value="{$GLOBALS['unpaidDealStatus']}">Не оплачена</option>
-                <option value="{$GLOBALS['doneDealStatus']}">Выполнена</option>
-            </select>
-            <input type="submit" value="оправить">
+            <fieldset class="provider-form-search__inputs-block provider-inputs-block">
+                <legend class='provider-inputs-block__title'>Id клиента</legend>
+                <input class="provider-inputs-block__input" type='number' name='customer_id'>
+            </fieldset>
+            <fieldset class="provider-form-search__inputs-block provider-inputs-block">
+                <legend class='provider-inputs-block__title'>Статус сделки</legend>
+                <select class='provider-inputs-block__select-block provider-select-block' name='customer_order_status[]' multiple>
+                    <option class="provider-select-block__option" value="{$GLOBALS['paidDealStatus']}">Оплачена</option>
+                    <option class="provider-select-block__option" value="{$GLOBALS['beingDoneDealStatus']}">В работе</option>
+                    <option class="provider-select-block__option" value="{$GLOBALS['unpaidDealStatus']}">Не оплачена</option>
+                    <option class="provider-select-block__option" value="{$GLOBALS['doneDealStatus']}">Выполнена</option>
+                </select>
+            </fieldset>
+            <input class="provider-form-search__submit" type="submit" value="Выбранные сделки">
         </form>
-        <form method="POST">
+        <form class="provider-form-search" method="POST">
             <input type="hidden" name="Page" value="{$this->pageName}">
             <input type="hidden" name='all_deals' value="all">
-            <input type="submit" value="все сделки">
+            <input class="provider-form-search__submit" type="submit" value="Все Ваши сделки">
         </form>
-        <div>
-            <ul>{$this->deals($this->deals)}</ul>
+        <div class="provider-deals">
+            <h2 class="provider-main__title">Ваши выбранные сделки</h2>
+            <ul class='provider-deals__deals-list'>{$this->deals($this->deals)}</ul>
         </div>
         {$this->getFooter()}
     

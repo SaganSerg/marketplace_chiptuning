@@ -41,6 +41,39 @@ abstract class Controller
         return $contents;
     }
 
+    static function uploadTreatedFile ($mark, $model, $customer_order_id)
+    {
+        $path = $model->getElements(
+            "SELECT * FROM file_path WHERE customer_order_id = ? AND file_path_what_file = ?",
+            [$customer_order_id, $GLOBALS['treatmentedFile']] // treatmentedFile это должно быть заменено
+        );
+        $checkCountPath = count($path); 
+        if ($checkCountPath == 0) {
+            return self::getNotFound($mark); // это должно быть заменено
+        }
+        if (count($path) > 1) {
+            return self::getNotFound($mark); // это должно быть заменено
+        }
+        $fullPath = $GLOBALS['saveFilePath'] . $path[0]['file_path_path'];
+
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+        $fileSize = filesize($fullPath);
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename=' . basename($fullPath));
+        header('Content-Transfer-Encoding: binary');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . $fileSize);
+        
+        $handle = fopen($fullPath, "rb");
+        $contents = fread($handle, $fileSize);
+        fclose($handle);
+        return $contents;
+    }
     static function startSessionAndCheckPassForProv($mark)
     {
         session_start();
@@ -1137,7 +1170,7 @@ abstract class Controller
                     $checkFileSize = ($_FILES['original_file']['size'] > $GLOBALS['fileSizeFromCustomer']) || ($_FILES['original_file']['error'] == 2);
 
                     if ($checkCustomer_order_amount || $checkConditionOfReadingDevice || $checkFileSize) {
-                        return self::getAllparametersPage($model, $cookiesmanagement, $mark, $checkCustomer_order_amount, $checkConditionOfReadingDevice, $checkFileSize);
+                        return self::getAllparametersPage($model, $cookiesmanagement, $mark, $checkConditionOfReadingDevice, $checkCustomer_order_amount, $checkFileSize);
                     }
                     self::startSessionWithCheck($cookiesmanagement);
                     $customer_id = $_SESSION['customer_id'];
@@ -1316,6 +1349,13 @@ abstract class Controller
                 }
                 if (self::checkMethodPostAndPageName('/rememberpassword')) {
                     return (new PageCustomerFacadeRememberpassword($mark, null))->getHTML();
+                }
+            }
+            if ($mark = $_SERVER['REQUEST_URI'] == '/uploadprovfile') {
+                if (self::checkMethodPostAndPageName('/dealsdeal')) {
+                    if (array_key_exists('customer_order_id', $_POST)) {
+                        return self::uploadTreatedFile($mark, $model, $_POST['customer_order_id']);
+                    } 
                 }
             }
             if ($mark == '/sentmail') {
