@@ -1051,23 +1051,27 @@ abstract class Controller
                     $headers[] = 'Content-type: text/html; charset=iso-8859-1';
                     $subject = self::getText($lang, 'Registration on the website', $arrPhrases);
                     $headers[] = 'From: .' . self::getText($lang, 'Chip tuning', $arrPhrases) . '<' . $GLOBALS['ourMail'] . '>';
-                    $message = "
+                    $message = '
                         <html>
                         <head>
-                        <title>" . self::getText($lang, 'Registration on the website', $arrPhrases). "</title>
+                          <title>' . self::getText($lang, 'Registration on the website', $arrPhrases) . '</title>
                         </head>
                         <body>
-                        <h1>" . self::getText($lang, 'Registration on the website', $arrPhrases) . "</h1>
-                        <p>" . self::getText($lang, 'In order to register in our system, you need to follow ', $arrPhrases) . "<a href='" . $GLOBALS['domain'] . '/' . $email_for_registration_url . "'>the link</a></p>
+                          <p>' . self::getText($lang, 'Registration on the website', $arrPhrases) . '</p>
+                          <table>
+                            <tr>
+                              <td> ' . self::getText($lang, 'In order to register in our system, you need to follow ', $arrPhrases) . '<a href="' . $GLOBALS['domain'] . '/' . $email_for_registration_url . '</td>
+                            </tr>
+                          </table>
                         </body>
                         </html>
-                        ";
+                    ';
                     if (mail($to, $subject, $message, implode("\r\n", $headers))) {
                         return (new PageCustomerFacadeMessagesentmailregistration($mark, null, $email_for_registration_email))->getHTML();
                     } 
-                    else { // заглушка, когда будет работать почта удалить
-                        return (new PageCustomerFacadeMessagesentmailregistration($mark, null, $email_for_registration_email))->getHTML(); // заглушка, когда будет работать почта удалить
-                    } // заглушка, когда будет работать почта удалить
+                    else {
+                        return self::getNotFound($mark);
+                    }
                 }
                 return self::getNotFound($mark);
             }
@@ -1394,17 +1398,21 @@ abstract class Controller
                     $subject = self::getText($lang, 'Password recovery', $arrPhrases);
                     $headers[] = 'From: .' . self::getText($lang, 'Chip tuning', $arrPhrases) . '<' . $GLOBALS['ourMail'] . '>';
                     if (!$isExistEmail) {
-                        $message = "
-                        <html>
-                        <head>
-                        <title>" . self::getText($lang, 'Password recovery', $arrPhrases). "</title>
-                        </head>
-                        <body>
-                        <h1>" . self::getText($lang, 'Password recovery', $arrPhrases) . "</h1>
-                        <p>" . self::getText($lang, 'We cannot provide you with a link to reset your password, since the email you specified is not registered in our service', $arrPhrases) . "</p>
-                        </body>
-                        </html>
-                        ";
+                        $message = '
+                            <html>
+                            <head>
+                            <title>' . self::getText($lang, 'Password recovery', $arrPhrases). '</title>
+                            </head>
+                            <body>
+                            <p>' . self::getText($lang, 'Password recovery', $arrPhrases) . '</p>
+                            <table>
+                                <tr>
+                                <td>' . self::getText($lang, 'We cannot provide you with a link to reset your password, since the email you specified is not registered in our service', $arrPhrases) . '</td>
+                                </tr>
+                            </table>
+                            </body>
+                            </html>
+                        ';
                     } else {
                         $customer_id = $model->getElements(
                             "SELECT customer_id FROM customer WHERE customer_email = ?",
@@ -1421,24 +1429,28 @@ abstract class Controller
                                 ) VALUES (?, ?, ?)", 
                             [$customer_password_recovery_url,  $date, $customer_id]
                         );
-                        $message = "
-                        <html>
-                        <head>
-                        <title>" . self::getText($lang, 'Password recovery', $arrPhrases) . "</title>
-                        </head>
-                        <body>
-                        <h1>" . self::getText($lang, 'Password recovery', $arrPhrases) . "</h1>
-                        <p>" . self::getText($lang, 'In order to recover your password, you need to follow', $arrPhrases) . "<a href='$url'>" . self::getText($lang, 'the link', $arrPhrases) . "</a></p>
-                        </body>
-                        </html>
-                        ";
+                        $message = '
+                            <html>
+                            <head>
+                            <title>' . self::getText($lang, 'Password recovery', $arrPhrases). '</title>
+                            </head>
+                            <body>
+                            <p>' . self::getText($lang, 'Password recovery', $arrPhrases) . '</p>
+                            <table>
+                                <tr>
+                                <td>' . self::getText($lang, 'In order to recover your password, you need to follow', $arrPhrases) . '<a href="$url">' . self::getText($lang, 'the link', $arrPhrases) . '</a></td>
+                                </tr>
+                            </table>
+                            </body>
+                            </html>
+                        ';
                     }
                     if (mail($to, $subject, $message, implode("\r\n", $headers))) {
                         return (new PageCustomerFacadeSentmail($mark, null))->getHTML();
                     } 
-                    else { // заглушка, когда будет работать почта удалить
-                        return (new PageCustomerFacadeSentmail($mark, null))->getHTML(); // заглушка, когда будет работать почта удалить
-                    } // заглушка, когда будет работать почта удалить
+                    else {
+                        return self::getNotFound($mark);
+                    }
                 }
                 if (self::checkMethodPostAndPageName('/sentmail')) {
                     return (new PageCustomerFacadeSentmail($mark, null))->getHTML();
