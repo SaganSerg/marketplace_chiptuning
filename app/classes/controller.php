@@ -1060,7 +1060,7 @@ abstract class Controller
                           <p>' . self::getText($lang, 'Registration on the website', $arrPhrases) . '</p>
                           <table>
                             <tr>
-                              <td> ' . self::getText($lang, 'In order to register in our system, you need to follow ', $arrPhrases) . '<a href="' . $GLOBALS['domain'] . '/' . $email_for_registration_url . '</td>
+                              <td> ' . self::getText($lang, 'In order to register in our system, you need to follow the link', $arrPhrases) . '<a href="' . $GLOBALS['domain'] . $email_for_registration_url . '">' . $GLOBALS['domain'] . $email_for_registration_url . '</td>
                             </tr>
                           </table>
                         </body>

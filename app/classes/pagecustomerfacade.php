@@ -77,6 +77,12 @@ HTML;
         
     }
 
+    protected function getFacadeFooterForGetRequire($pageName, $otherInput) // это метод выводит футер на тех страничках, у которых переменный url (это странички для регистрации и смены пароля)
+    {
+        return $this->footer($this->getCookieWindow($this->getText($this->lang, 'agreeWindowCookie'), $this->getText($this->lang, 'agreementtitleWindowCookie'), $this->getText($this->lang, 'agreementexplanationWindowCookie'), $pageName, $this->lang, $this->getHiddenInputSet($this->lang, $this->pageName, $otherInput)));
+        
+    }
+
     protected function getFacadeHeader($page, string $blockInputs = null)
     {
         return $this->header("page_$page", 'page__header_light', $this->getBlockLangSwitcher(self::ARR_FOR_LANG, $blockInputs));

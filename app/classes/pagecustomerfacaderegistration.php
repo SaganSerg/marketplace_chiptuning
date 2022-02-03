@@ -337,7 +337,7 @@ class PageCustomerFacadeRegistration extends PageCustomerFacade
                 {$this->getSubmit($this->getText($this->lang, 'SendMain'), $this->pageName, "form__button button button__transparent")}
             </fieldset>
         </form>
-        {$this->getFacadeFooter($this->pageName, $hiddenInputs)}
+        {$this->getFacadeFooterForGetRequire($this->name, $hiddenInputs)}
 HTML;
     }
 
