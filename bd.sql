@@ -1,14 +1,21 @@
 -- создание базы данных
 CREATE DATABASE chiptuning3 CHARACTER SET utf8mb4;
 
+-- на удаленном сервере 
+ALTER DATABASE wuloruwu_chiptuning3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
 -- код для создания пользователя проверенный
-CREATE USER 'admin_chiptuning3'@'localhost' IDENTIFIED BY '123456';
+-- пароль RjyBcgLfy
+CREATE USER 'admin_chiptuning3'@'localhost' IDENTIFIED BY '123456'; 
 GRANT SELECT, INSERT, UPDATE  ON chiptuning3.* TO 'admin_chiptuning3'@'localhost';
 -- код для создание пользователя. Надо проверить как это работает
 GRANT SELECT, INSERT, UPDATE  ON chiptung3.* TO 'admin_chiptuning3'@'localhost' IDENTIFIED BY '123456';
 
 -- для того, чтобы можно было исползовать базу данных надо выбрать ее
 USE chiptuning3;
+
+-- на удаленном сервере
+USE wuloruwu_chiptuning3;
 
 -- создаем таблицы
 CREATE TABLE email_for_registration /* в данной таблице хранится информация об электронных адресах, которые ввел потенциальный клиент, до того как было подтвеждено что данная почта действительно его */
@@ -18,7 +25,8 @@ CREATE TABLE email_for_registration /* в данной таблице храни
 	email_for_registration_url CHAR(255) DEFAULT 0, /* предварительно, данный урл будет формироваться на основе значения customer_email_id плюс слово registration */
 	email_for_registration_date_of_link_creation BIGINT NOT NULL,
     email_for_registration_notwork SMALLINT DEFAULT 0
-);
+)
+ENGINE=INNODB;
 CREATE TABLE customer
 (
     customer_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -29,7 +37,8 @@ CREATE TABLE customer
     customer_registration_date BIGINT NOT NULL,
     customer_coins SMALLINT DEFAULT 0,
     customer_password CHAR(255) NOT NULL
-);
+)
+ENGINE=INNODB;
 CREATE TABLE provider
 (
     provider_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -39,7 +48,8 @@ CREATE TABLE provider
     provider_registration_date BIGINT NOT NULL,
     provider_status CHAR(15) NOT NULL,
     provider_password CHAR(255) NOT NULL
-);
+)
+ENGINE=INNODB;
 /* 
 INSERT INTO provider (provider_login, provider_firstname, provider_secondname, provider_registration_date, provider_status, provider_password) VALUES ('Vasa', 'Vasiliy', 'Ivanov', 1639056038, 'file_treatment', '$2y$10$9heuJzptkGBWibXoIjiw9.rCHmeo1Mb.ZjA194pr9Wt/HEl3Zvd2e' )
 */
@@ -48,7 +58,8 @@ CREATE TABLE valuta_exchange_rate
     valuta_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     valuta_name CHAR(3) NOT NULL,
     valuta_exchange_rate FLOAT(5,2) NOT NULL
-);
+)
+ENGINE=INNODB;
 CREATE TABLE coin_transaction
 (
     coin_transaction_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -58,7 +69,8 @@ CREATE TABLE coin_transaction
     coin_transaction_status CHAR(25) NOT NULL,
 
     FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
-);
+)
+ENGINE=INNODB;
 
 CREATE TABLE customer_password_recovery
 (
@@ -71,12 +83,14 @@ CREATE TABLE customer_password_recovery
     customer_id INT UNSIGNED NOT NULL,
 
     FOREIGN KEY (customer_id) REFERENCES customer(customer_id) 
-);
+)
+ENGINE=INNODB;
 CREATE TABLE service_type
 (
     service_type_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     service_type_name CHAR(50) NOT NULL UNIQUE
-);
+)
+ENGINE=INNODB;
 CREATE TABLE customer_order
 ( 
     customer_order_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -91,7 +105,8 @@ CREATE TABLE customer_order
     FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
     FOREIGN KEY (service_type_id) REFERENCES service_type(service_type_id),
     FOREIGN KEY (provider_id) REFERENCES provider(provider_id)
-);
+)
+ENGINE=INNODB;
 
 CREATE TABLE change_order_status_provider
 (
@@ -103,7 +118,8 @@ CREATE TABLE change_order_status_provider
 
     FOREIGN KEY (customer_order_id) REFERENCES customer_order(customer_order_id),
     FOREIGN KEY (provider_id) REFERENCES provider(provider_id)
-);
+)
+ENGINE=INNODB;
 
 CREATE TABLE deal_payment
 (
@@ -113,7 +129,8 @@ CREATE TABLE deal_payment
 
     FOREIGN KEY (customer_order_id) REFERENCES customer_order(customer_order_id),
     FOREIGN KEY (coin_transaction_id) REFERENCES coin_transaction(coin_transaction_id)
-);
+)
+ENGINE=INNODB;
 
 CREATE TABLE change_provider 
 (
@@ -125,7 +142,8 @@ CREATE TABLE change_provider
 
     FOREIGN KEY (customer_order_id) REFERENCES customer_order(customer_order_id),
     FOREIGN KEY (provider_id) REFERENCES provider(provider_id)
-);
+)
+ENGINE=INNODB;
 CREATE TABLE  message
 ( 
     message_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -136,17 +154,20 @@ CREATE TABLE  message
     message_seen CHAR(1) NOT NULL,
 
     FOREIGN KEY (customer_order_id) REFERENCES customer_order(customer_order_id)
-);
+)
+ENGINE=INNODB;
 CREATE TABLE service 
 (
     service_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     service_name CHAR(50) NOT NULL UNIQUE
-);
+)
+ENGINE=INNODB;
 CREATE TABLE condition_id
 (
     condition_id_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     condition_id_works CHAR(1) NOT NULL /* значение 1 (единица) говорит что данная кондиция работает */
-);
+)
+ENGINE=INNODB;
 CREATE TABLE condition_value /* в данную базу нужно вносить только новые кондиции, изменять старые нельзя */
 (
     condition_value_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -157,7 +178,8 @@ CREATE TABLE condition_value /* в данную базу нужно вносит
 
     FOREIGN KEY (condition_id_id) REFERENCES condition_id(condition_id_id),
     FOREIGN KEY (service_type_id) REFERENCES service_type(service_type_id)
-);
+)
+ENGINE=INNODB;
 CREATE TABLE constant_value 
 (
     constant_value_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -166,7 +188,8 @@ CREATE TABLE constant_value
     constant_value_value CHAR(50),
 
     FOREIGN KEY (service_type_id) REFERENCES service_type(service_type_id)
-);
+)
+ENGINE=INNODB;
 CREATE TABLE condition_service 
 (
     condition_service_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -176,7 +199,8 @@ CREATE TABLE condition_service
 
     FOREIGN KEY (condition_id_id) REFERENCES condition_id(condition_id_id),
     FOREIGN KEY (service_id) REFERENCES service(service_id)
-);
+)
+ENGINE=INNODB;
 
 CREATE TABLE customer_order_data 
 (
@@ -186,7 +210,8 @@ CREATE TABLE customer_order_data
     customer_order_data_value CHAR(50) NOT NULL,
 
     FOREIGN KEY (customer_order_id) REFERENCES customer_order(customer_order_id)
-);
+)
+ENGINE=INNODB;
 
 /*
 CREATE TABLE customer_order_service 
@@ -207,7 +232,9 @@ CREATE TABLE customer_order_service
     service_name CHAR(50) NOT NULL,
 
     FOREIGN KEY (customer_order_id) REFERENCES customer_order(customer_order_id)
-);
+)
+ENGINE=INNODB;
+
 CREATE TABLE file_path
 (
     file_path_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -218,7 +245,8 @@ CREATE TABLE file_path
     file_path_checksum CHAR(255) NOT NULL,
     
     FOREIGN KEY (customer_order_id) REFERENCES customer_order(customer_order_id)
-);
+)
+ENGINE=INNODB;
 --
 DROP database chiptuning3;
 

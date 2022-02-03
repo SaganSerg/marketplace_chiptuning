@@ -1,14 +1,19 @@
 <?php
 $dbhost = "localhost";
-$dbname = 'chiptuning3';
-$dbadmin = 'admin_chiptuning3';
-$dbadminpass = '123456';
+// $dbname = 'chiptuning3';
+$dbname = 'wuloruwu_chiptuning3';
+// $dbadmin = 'admin_chiptuning3';
+$dbadmin = 'wuloruwu_admin_chiptuning3';
+// $dbadminpass = '123456';
+$dbadminpass = 'RjyBcgLfy';
 $rub = 'RUB';
 $usd = 'USD';
 $eur = 'EUR';
-$domain = 'chiptuning3.localhost';
+// $domain = 'chiptuning3.localhost';
+$domain = 'chiptuning.wulo.ru';
 $protocol = 'http';
-$saveFilePath = '/opt/lampp/';
+// $saveFilePath = '/opt/lampp/';
+$saveFilePath = '/home/wuloruwu/';
 $incomingFileDir = 'chiptuning3_incoming';
 $outgoingFileDir = 'chiptuning3_outgoing';
 // название типа файла, которое помещается в таблица file_path в поле filt_path_what_file
@@ -18,7 +23,8 @@ $treatmentedFile = 'treatmented';
 $notTreatmentedFile = 'nottreatmented';
 
 $fileSizeFromCustomer = 10*1024*1024;
-$ourMail = 'websagan@gmail.com';
+// $ourMail = 'websagan@gmail.com';
+$ourMail = 'sagan.sergei.mih@yandex.ru';
 $saveLinkPasswordTime = 60*60*24;
 $accessRight = 0777;
 
