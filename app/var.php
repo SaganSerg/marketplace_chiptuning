@@ -42,3 +42,44 @@ $doneDealStatus = 'done';
 // статусы сотрудников
 // file_treatmenter может отвечать в чате на вопросы, (может Скачивать файлы от клиента, может ЗАкачивать файлы обработанные, может менять статусы)
 $fileTreatmenterProviderStatus = 'file_treatment';
+
+// данные сбербанка
+$sberPass = 123456;
+$sberUserName = 'somebody';
+
+// $example = {
+//     "errorCode":"0",
+//     "errorMessage":"Успешно",
+//     "orderNumber":"0784sse49d0s134567890",
+//     "orderStatus":6,
+//     "actionCode":-2007,
+//     "actionCodeDescription":"Время сессии истекло",
+//     "amount":33000,
+//     "currency":"643",
+//     "date":1383819429914,
+//     "orderDescription":" ",
+//     "merchantOrderParams":[
+//         {
+//             "name":"email",
+//             "value":"yap"
+//         }
+//     ],
+//     "attributes":[
+//         {
+//             "name":"mdOrder",
+//             "value":"b9054496-c65a-4975-9418-1051d101f1b9"
+//         }
+//     ],
+//     "cardAuthInfo":{
+//         "expiration":"201912",
+//         "cardholderName":"Ivan",
+//         "secureAuthInfo":
+//         {
+//             "eci":6,"threeDSInfo":{
+//                 "xid":"MDAwMDAwMDEzODM4MTk0MzAzMjM="
+//             }
+//         },
+//         "pan":"411111**1111"
+//     },
+//     "terminalId":"333333"
+// };

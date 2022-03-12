@@ -27,6 +27,7 @@ CREATE TABLE email_for_registration /* в данной таблице храни
     email_for_registration_notwork SMALLINT DEFAULT 0
 )
 ENGINE=INNODB;
+
 CREATE TABLE customer
 (
     customer_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -39,6 +40,7 @@ CREATE TABLE customer
     customer_password CHAR(255) NOT NULL
 )
 ENGINE=INNODB;
+
 CREATE TABLE provider
 (
     provider_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -50,27 +52,43 @@ CREATE TABLE provider
     provider_password CHAR(255) NOT NULL
 )
 ENGINE=INNODB;
+
 /* 
 INSERT INTO provider (provider_login, provider_firstname, provider_secondname, provider_registration_date, provider_status, provider_password) VALUES ('Vasa', 'Vasiliy', 'Ivanov', 1639056038, 'file_treatment', '$2y$10$9heuJzptkGBWibXoIjiw9.rCHmeo1Mb.ZjA194pr9Wt/HEl3Zvd2e' )
 */
 CREATE TABLE valuta_exchange_rate
 (
-    valuta_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    valuta_exchange_rate_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    valuta_exchange_rate_data BIGINT NOT NULL,
     valuta_name CHAR(3) NOT NULL,
-    valuta_exchange_rate FLOAT(5,2) NOT NULL
+    valuta_exchange_rate_value FLOAT(5,2) NOT NULL
 )
 ENGINE=INNODB;
+
 CREATE TABLE coin_transaction
 (
     coin_transaction_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     customer_id INT UNSIGNED NOT NULL,
     coin_transaction_date BIGINT NOT NULL,
-    coin_transaction_sum SMALLINT NOT NULL,
-    coin_transaction_status CHAR(25) NOT NULL,
+    coin_transaction_sum SMALLINT NOT NULL, -- сумма в коинах
+    coin_transaction_status CHAR(25) NOT NULL, -- в данном поле указывается какая это транзакция зачисление денег toPaySystem или списание коинов downCoins
 
     FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
 )
 ENGINE=INNODB;
+
+CREATE TABLE pay_system_transaction
+(
+    pay_system_transaction_id  INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    coin_transaction_id INT UNSIGNED NOT NULL,
+    valuta_exchange_rate_id INT UNSIGNED NOT NULL,
+    pay_system_transaction_order_id CHAR(255) DEFAULT 0,-- сюда записывается id сделки, который присваивает сбер-банк
+    pay_system_transaction_notactivelink CHAR(1) DEFAULT 0, -- здесь стоит метка был ли переход по данной ссылке
+
+
+    FOREIGN KEY (valuta_exchange_rate_id) REFERENCES valuta_exchange_rate(valuta_exchange_rate_id),
+    FOREIGN KEY (coin_transaction_id) REFERENCES coin_transaction(coin_transaction_id)
+)
 
 CREATE TABLE customer_password_recovery
 (
@@ -79,18 +97,20 @@ CREATE TABLE customer_password_recovery
     customer_password_recovery_notwork SMALLINT DEFAULT 0,
     customer_password_recovery_date_of_link_creation BIGINT NOT NULL,
     customer_password_recovery_date_of_visit_link BIGINT DEFAULT 0,
-    customer_password_recovery_date_password BIGINT DEFAULT 0,
+    customer_password_recovery_date_password BIGINT ,
     customer_id INT UNSIGNED NOT NULL,
 
     FOREIGN KEY (customer_id) REFERENCES customer(customer_id) 
 )
 ENGINE=INNODB;
+
 CREATE TABLE service_type
 (
     service_type_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     service_type_name CHAR(50) NOT NULL UNIQUE
 )
 ENGINE=INNODB;
+
 CREATE TABLE customer_order
 ( 
     customer_order_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -144,6 +164,7 @@ CREATE TABLE change_provider
     FOREIGN KEY (provider_id) REFERENCES provider(provider_id)
 )
 ENGINE=INNODB;
+
 CREATE TABLE  message
 ( 
     message_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -156,18 +177,21 @@ CREATE TABLE  message
     FOREIGN KEY (customer_order_id) REFERENCES customer_order(customer_order_id)
 )
 ENGINE=INNODB;
+
 CREATE TABLE service 
 (
     service_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     service_name CHAR(50) NOT NULL UNIQUE
 )
 ENGINE=INNODB;
+
 CREATE TABLE condition_id
 (
     condition_id_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     condition_id_works CHAR(1) NOT NULL /* значение 1 (единица) говорит что данная кондиция работает */
 )
 ENGINE=INNODB;
+
 CREATE TABLE condition_value /* в данную базу нужно вносить только новые кондиции, изменять старые нельзя */
 (
     condition_value_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -180,6 +204,7 @@ CREATE TABLE condition_value /* в данную базу нужно вносит
     FOREIGN KEY (service_type_id) REFERENCES service_type(service_type_id)
 )
 ENGINE=INNODB;
+
 CREATE TABLE constant_value 
 (
     constant_value_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -190,6 +215,7 @@ CREATE TABLE constant_value
     FOREIGN KEY (service_type_id) REFERENCES service_type(service_type_id)
 )
 ENGINE=INNODB;
+
 CREATE TABLE condition_service 
 (
     condition_service_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,

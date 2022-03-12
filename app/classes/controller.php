@@ -2,9 +2,47 @@
 abstract class Controller
 {
     static private $pppp = '123456';
-    static private $allCustomerCabinetPage = ['/allparameters', '/brand', '/dealsdeal', '/dealsdeals', '/ecu', '/history', '/model', '/pay', '/profile', '/treatment'];
+    static private $allCustomerCabinetPage = ['/allparameters', '/brand', '/dealsdeal', '/dealsdeals', '/ecu', '/history', '/model', '/pay', '/profile', '/treatment', '/payisgood'];
     static private $allCustomerFacadePage = ['/contacts', '/index', '/newpassword', '/notfound', '/rememberpassword', '/sentmail', '/sentmailregistration', '/messagesentmailregistration', '/termsuse', '/about', '/registration'];
     static private $allProviderPage = ['/admin', '/deal', '/deals', '/gate', '/valuta'];
+
+    // static function getDataFromOurerService(string $url, array $requestBody)
+    // {
+    //     $init = curl_init($url);
+    //     if ($init) {
+    //         if 
+    //         (
+    //             curl_setopt($init, CURLOPT_RETURNTRANSFER, true) &&
+    //             curl_setopt($init, CURLOPT_POST, true) &&
+    //             curl_setopt($init, CURLOPT_POSTFIELDS, $requestBody)
+    //         ) 
+    //         {
+    //             if ($json = curl_exec($init)) {
+    //                 $text = json_decode($json, true);
+    //                 if (json_last_error() === 0) {
+    //                     return $text;
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+    static function getJSONfromOuterService(string $url, array $requestBody)
+    {
+        $init = curl_init($url);
+        if ($init) {
+            if 
+            (
+                curl_setopt($init, CURLOPT_RETURNTRANSFER, true) &&
+                curl_setopt($init, CURLOPT_POST, true) &&
+                curl_setopt($init, CURLOPT_POSTFIELDS, $requestBody)
+            ) 
+            {
+                if ($json = curl_exec($init)) {
+                    return $json; 
+                }
+            }
+        }
+    }
 
     static function uploadFile($mark, $model, $customer_order_id)
     {
@@ -906,6 +944,10 @@ abstract class Controller
                 ($customerPasswordRecoveryUrl = ($customerPasswordRecoveryId = $model->getCustomerPasswordRecoveryId($_SERVER['REQUEST_URI'])) ? $_SERVER['REQUEST_URI'] : false)
                 ||
                 ($email_for_registration_url = ($email_for_registration_id = $model->getRegistrationEmailId($_SERVER['REQUEST_URI'])) ? $_SERVER['REQUEST_URI'] : false)
+                ||
+                ($paySystemIsGoodUrl = ($paySystemIsGoodId = $model->getCoinTransactionId($_SERVER['REQUEST_URI'], 'payisgood')) ? $_SERVER['REQUEST_URI'] : false)
+                ||
+                ($paySystemIsBadUrl = ($paySysterIsBadId = $model->getCoinTransactionId($_SERVER['REQUEST_URI'], 'payisbad')) ? $_SERVER['REQUEST_URI'] : false)
             );
             $cookiesmanagement = $GLOBALS['cookiesmanagement'];
             $mark = '/notfound';
@@ -953,9 +995,9 @@ abstract class Controller
                 case '/rememberpassword':
                     $mark = '/rememberpassword';
                 break;
-                case '/sentmail':
-                    $mark = '/sentmail';
-                break;
+                // case '/sentmail':
+                //     $mark = '/sentmail';
+                // break;
                 case '/sentmailregistration':
                     $mark = '/sentmailregistration';
                 break;
@@ -974,6 +1016,22 @@ abstract class Controller
                 }
                 return self::routingSimplePage([], $mark, $checkReferer, self::$allCustomerFacadePage, self::$allCustomerCabinetPage);
             }
+            // if ($_SERVER['REQUEST_URI'] == '/payisgood') { // нужно данную строку сохранить в переменной
+            //     $mark = '/payisgood';
+
+            //     if ($_SERVER['REQUEST_METHOD'] == "GET") {
+            //         session_start();
+            //         if (isset($_SESSION['customer_id'])) {
+            //             $customerData = $model->getElements(
+            //                 'SELECT * FROM customer WHERE customer_id = ?',
+            //                 [$_SESSION['customer_id']]
+            //             )[0];
+            //             return (new PageCustomerCabinetPayisgood($mark, $_SESSION['customer_id'], $customerData['customer_email'], $customerData['customer_coins']))->getHTML();
+            //         }
+            //         return (new PageCustomerFacadeIndex($mark, null))->getHTML();
+            //     }
+            //     return self::getNotFound($mark);
+            // }
 
             if ($_SERVER['REQUEST_URI'] == '/about') {
                 $mark = '/about';
@@ -1060,7 +1118,7 @@ abstract class Controller
                           <p>' . self::getText($lang, 'Registration on the website', $arrPhrases) . '</p>
                           <table>
                             <tr>
-                              <td> ' . self::getText($lang, 'In order to register in our system, you need to follow the link', $arrPhrases) . '<a href="' . $GLOBALS['domain'] . $email_for_registration_url . '">' . $GLOBALS['domain'] . $email_for_registration_url . '</td>
+                              <td> ' . self::getText($lang, 'In order to register in our system, you need to follow the link', $arrPhrases) . '<a href="' . $GLOBALS['protocol'] . $GLOBALS['domain'] . $email_for_registration_url . '">' . $GLOBALS['domain'] . $email_for_registration_url . '</td>
                             </tr>
                           </table>
                         </body>
@@ -1093,8 +1151,105 @@ abstract class Controller
                 if (self::checkMethodPostAndPageName('/pay') && self::checkMethodName('coins', 'POST', $_POST)) {
                     $coins = (float) $model->cleaningDataForm($_POST['coins']);
                     self::startSessionWithCheck($cookiesmanagement);
-                    $model->updateCoins($coins, $_SESSION['customer_id'], 'putOnCoinAccount');
-                    return self::returnPageCustomerCabinetPayWithoutStaingId($mark, $model);
+                    $customerData = $model->getElements(
+                        'SELECT * FROM customer WHERE customer_id = ?',
+                        [$_SESSION['customer_id']]
+                    )[0];
+                    $valuta_exchange_rate_id = $model->getElements(
+                        'SELECT valuta_exchange_rate_id FROM valuta_exchange_rate WHERE valuta_name = ? ORDER BY valuta_exchange_rate_id DESC LIMIT 1',
+                        [$customerData['customer_valuta']]
+                    )[0];
+                    
+                    // $exchangeRateArr = $model->getElements(
+                    //     'SELECT * FROM valuta_exchange_rate WHERE valuta_name = ?',
+                    //     [$customerData['customer_valuta']]
+                    // );
+
+
+                    // foreach( $exchangeRateArr as $elem ) {
+                    //     $exchangeRate = $elem['valuta_exchange_rate'];
+                    // }
+                    
+                    // $isCoinTransaction = !!$model-getElements(
+                    //     'SELECT * FROM coin_transaction WHERE coin_transaction_link = ? AND coin_transaction_link_utilized = 0',
+                    //     [$coinTransactionLink]
+                    // );
+                    // do {
+                    //     $coinTransactionLink = '/' . $_SESSION['customer_id'] . 'paycoins' . $date; // /1paycoins67464477666 -- такого типа будет ссылка, потом к этой строке будет добавлена
+                    //     $isCoinTransaction = $model-getElements(
+                    //         'SELECT * FROM coin_transaction WHERE coin_transaction_link = ? AND coin_transaction_link_utilized = 0',
+                    //         [$coinTransactionLink]
+                    //     );
+                    // } while ($isCoinTransaction);
+                    $coinsTransactionId = $model->addElements(
+                        'INSERT INTO coin_transaction (
+                            customer_id, 
+                            coin_transaction_date, 
+                            coin_transaction_sum, 
+                            coin_transaction_status, 
+                            ) VAlUE (?, ?, ?, ?)',
+                        [$_SESSION['customer_id'], $date, $coins, 'toPaySystem']
+                    );
+                    $paySysterTransactionId = $model->addElements(
+                        'INSERT INTO pay_system_transaction (coin_transaction_id, valuta_exchange_rate_id) VALUE (?, ?)',
+                        [$coinsTransactionId, $valuta_exchange_rate_id]
+                    );
+                    $amount = $coins;
+                    $orderNumber = $coinsTransactionId;
+                    $returnUrl = $GLOBALS['protocol'] . '://' . $GLOBALS['domain'] .  '/payisgood_' . $coinsTransactionId; // надо строки запихнут в переменные
+                    $returnUrlFail = $GLOBALS['protocol'] . '://' . $GLOBALS['domain'] .  '/payisbad_' . $coinsTransactionId; // надо строки запихнуть в переменные
+                    /* 
+                        я хочу сделать отдельный урл для неудачной оплаты, потому что возможен вариант, когда время ссесси истечет и покупатель, уже не сможет вернуться в свой кабинет и его нужно куда-то выбросить в наружу, но при этом сообщить, что оплата не прошла, чтобы он не офигел. Я такого не делаю при успешной оплате, потому что даже если сессия истечет и человека выброшу из кабинета, он вернувшись в кабинет все равно увидит, что баланс пополнен
+                    */
+                    $userName = 'somebody'; // надо подставить правильное
+                    $password = 123456; // надо подставить правильное
+                    $requestBody = [
+                        'amount' => $amount,
+                        'orderNumber' => $orderNumber, 
+                        'returnUrl' => $returnUrl,
+                        'failUrl' => $returnUrlFail,
+                        'userName' => $userName,
+                        'password' => $password
+                    ];
+                    $init = curl_init('https://3dsec.sberbank.ru/payment/rest/registerPreAuth.do');
+
+                    curl_setopt($init, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($init, CURLOPT_POST, true);
+                    curl_setopt($init, CURLOPT_POSTFIELDS, $requestBody);
+                    $json = curl_exec($init);
+                    $text = json_decode($json, true);
+                    if ($text === null) {
+                        return self::getNotFound($mark);
+                    }
+                    if (!is_array($text)) {
+                        return self::getNotFound($mark);
+                    }
+                    if (!array_key_exists('formUrl', $text) || !array_key_exists('orderId', $text)) {
+                        $codeError = array_key_exists('errorCode', $text) ? $text['errorCode'] : null; // надо будет потом создать страничку с обработкой ошибок
+                        $messageError = array_key_exists('errorMessage', $text) ? $text['errorMessage'] : null; // это на потом, после того как создам страничку для обработки ошибок
+                        return self::getNotFound($mark);
+                    }
+                    $location = $text['formUrl'];
+                    $numberOfChanged = $model->updateElements(
+                        "UPDATE `pay_system_transaction` SET `pay_system_transaction_order_id` = ? WHERE `coin_transaction_id` = ?",
+                        [$text['orderId'], $coinsTransactionId]
+                    );
+                    if ($numberOfChanged == 1) {
+                        header('Location:' . $location);
+                        exit;
+                    }
+                    return self::getNotFound($mark);
+                   
+                    /* 
+
+                        здесь нужно обратиться к таблице coin_transaction. Указать сумму коинов, указать статус toPaySystem и получить id транзакции
+                        далее проводятся манипуляции с платежной системой
+                        далее в таблице coin_transaction обновляется статус на, или putOnCoinAccount, или cancelPay
+                        и в зависимости от этого, в таблицу customer обновляется сумма располагаемых коинов
+                    */
+                    // $model->updateCoins($coins, $_SESSION['customer_id'], 'putOnCoinAccount');
+
+                    // return self::returnPageCustomerCabinetPayWithoutStaingId($mark, $model);
                 }
                 if (self::checkMethodPostAndPageName('/index')) {
                     PageCustomerFacadeIndex::$externalConditionEmailNotExist = !$model->checkEmail($_POST['Email']);
@@ -1105,11 +1260,11 @@ abstract class Controller
                     }
                     return self::returnPageCustomerCabinetPayWithStaingId($mark, $_POST['Email'], $_POST['Pass'], $model, $cookiesmanagement);
                 }
-                $fromPageArr = ['/dealsdeals', '/dealsdeal', '/treatment', '/bigfile', '/profile', '/profilenotupdated', '/profileupdated', '/history', '/pay' ];
+                $fromPageArr = ['/dealsdeals', '/dealsdeal', '/treatment', '/bigfile', '/profile', '/profilenotupdated', '/profileupdated', '/history', '/pay', '/payisgood'];
                 return self::routingSimplePayPage($fromPageArr, $cookiesmanagement, $model);
             }
             if ($mark == '/treatment') {
-                $fromPageArr = ['/dealsdeals', '/dealsdeal', '/history', '/profile', '/profilenotupdated', '/profileupdated', '/pay', '/brand'];
+                $fromPageArr = ['/dealsdeals', '/dealsdeal', '/history', '/profile', '/profilenotupdated', '/profileupdated', '/pay', '/brand', '/payisgood'];
                 if (self::checkMethodPostAndPageNames($fromPageArr)) {
                     return self::getTreatmentPage($model, $cookiesmanagement, $mark, false);
                 }
@@ -1362,7 +1517,8 @@ abstract class Controller
                     } 
                 }
             }
-            if ($mark == '/sentmail') {
+            if ($mark = $_SERVER['REQUEST_URI'] == '/sentmail') {
+                
                 if (self::checkMethodPostAndPageName('/rememberpassword')) {
                     $arrRegistrationMessages = PageCustomerFacadeRememberpassword::getInputNameList();
                     if (self::checkAnalogOr($arrRegistrationMessages) )   {
@@ -1419,7 +1575,7 @@ abstract class Controller
                             [$_POST['Email']]
                         )[0]['customer_id'];
                         $customer_password_recovery_url = '/' . $date . '_' . $customer_id;
-                        $url = $GLOBALS['domain'] . $customer_password_recovery_url;
+                        $url = $GLOBALS['protocol'] . '://' . $GLOBALS['domain'] . $customer_password_recovery_url;
                         
                         $customer_password_recovery_id = $model->addElements(
                             "INSERT INTO customer_password_recovery (
@@ -1438,7 +1594,7 @@ abstract class Controller
                             <p>' . self::getText($lang, 'Password recovery', $arrPhrases) . '</p>
                             <table>
                                 <tr>
-                                <td>' . self::getText($lang, 'In order to recover your password, you need to follow', $arrPhrases) . '<a href="$url">' . self::getText($lang, 'the link', $arrPhrases) . '</a></td>
+                                <td>' . self::getText($lang, 'In order to recover your password, you need to follow', $arrPhrases) . '<a href="' . $url . '">' . self::getText($lang, 'the link', $arrPhrases) . '</a></td>
                                 </tr>
                             </table>
                             </body>
@@ -1498,6 +1654,72 @@ abstract class Controller
                     }
                     if (self::checkMethodPostAndPageName('/registration')) {
                         return (new PageCustomerFacadeRegistration($mark, null, $registrationEmail))->getHTML();
+                    }
+                    return self::getNotFound($mark);
+                }
+                if ($mark = $paySystemIsGoodUrl) {
+                    if ($_SERVER['REQUEST_METHOD'] == "GET") {
+                        session_start();
+                        $url = 'https://3dsec.sberbank.ru/payment/rest/getOrderStatusExtended.do';
+                        $requestBody = [
+                            'userName' => $GLOBALS['sberUserName'],
+                            'password' => $GLOBALS['sberPass'],
+                            'orderId' => $paySystemIsGoodId
+                        ];
+                        if ($json = self::getJSONfromOuterService($url, $requestBody)) 
+                        {
+                            return self::getNotFound($mark); // надо будет в страничку, что-то пошло не так, добавить параметер строку и словарь
+                            // здесь ошибка подразумевает, что-то банк отправил и мы это получили, но что-то не то и поэтому непонятно, что произошло. Поэтому нужно чтобы пользователь проверил списались ли у него деньги и если списались нужно, чтобы он с нами связался и мы бы вместе разобрались бы с тем, что случилось. Произошла ошибка на стороне банка, Вам нужно связаться с нами.
+                        }
+                        $text = json_decode($json, true);
+                        if (json_last_error() !== 0) {
+                            return self::getNotFound($mark); // надо будет передать ошибку может быть поможет
+                        }
+                        
+                        // orderNumber
+                        // actionCode
+                        // actionCodeDescription
+                        // amount
+                        // date
+                        // ip
+                        // paymentWay -- от версии 09
+                        // if (isset($text['orderNumber']) && isset($text['actionCode']) ))
+                        $orderNumber = isset($text['orderNumber']) ? $text['orderNumber'] : null;
+                        $actionCode = isset($text['actionCode']) ? $text['actionCode'] : null;
+                        $orderStatus = isset($text['orderStatus']) ? $text['orderStatus'] : null;
+                        if ($orderNumber && $actionCode === 0 && $orderStatus === 1) { // надо наверное числовые коды вынести в переменные, чтобы можно было менять из одного места
+                            $model->updateElements(
+                                "UPDATE `pay_system_transaction` SET `pay_system_transaction_notactivelink` = 1 WHERE `coin_transaction_id` = ?",
+                                [$paySystemIsGoodId]
+                            );
+                            $customerId = $model->getElements(
+                                'SELECT * FROM coin_transaction WHERE coin_transaction_id = ?',
+                                [$paySystemIsGoodId]
+                            )[0]['customer_id'];
+
+                        }
+                        if (isset($_SESSION['customer_id'])) {
+                            $customerData = $model->getElements(
+                                'SELECT * FROM customer WHERE customer_id = ?',
+                                [$_SESSION['customer_id']]
+                            )[0];
+                            return (new PageCustomerCabinetPayisgood($mark, $_SESSION['customer_id'], $customerData['customer_email'], $customerData['customer_coins']))->getHTML();
+                        }
+                        return (new PageCustomerFacadeIndex($mark, null))->getHTML();
+                    }
+                    return self::getNotFound($mark);
+                }
+                if ($mark = $paySystemIsBadUrl) {
+                    if ($_SERVER['REQUEST_METHOD'] == "GET") {
+                        session_start();
+                        if (isset($_SESSION['customer_id'])) {
+                            $customerData = $model->getElements(
+                                'SELECT * FROM customer WHERE customer_id = ?',
+                                [$_SESSION['customer_id']]
+                            )[0];
+                            return (new PageCustomerCabonetPayisbad($mark, $_SESSION['customer_id'], $customerData['customer_email'], $customerData['customer_coins']))->getHTML(); // надо сделать страничку
+                        }
+                        return (new PageCustomerFacadePayisbad($mark, null))->getHTML(); // надо будет сделать страницу
                     }
                     return self::getNotFound($mark);
                 }

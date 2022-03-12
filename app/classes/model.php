@@ -456,7 +456,7 @@ class Model
             $appDB->commit();
         }
     }
-    function updateElements($query, $parameters)
+    function updateElements($query, $parameters) // "UPDATE `some_table` SET `some_field` = 'new_value', `other_some_field` = 'other_new_value' WHERE `some_condition` = 'value_some_condition'"
     {
         try {
             $appDB = $this->appDB();
@@ -722,5 +722,38 @@ class Model
             [$dataName, $idServiceType, $conditionId]
         );
     }
-    
+
+    // function getCoinTransactionId($requestUri)
+    // {
+    //     $id = substr($requestUri, strrpos($requestUri, '_') + 1);
+    //     $urlList = $this->getElements(
+    //         "SELECT coin_transaction_id FROM pay_system_transaction WHERE coin_transaction_id = ? AND pay_system_transaction_notactivelink < 1",
+    //         [$id]
+    //     );
+    //     return (array_key_exists(0, $urlList)) ? $urlList[0]['coin_transaction_id'] : null;
+    // }
+    // function getCoinTransactionIdIsGood($requestUri)
+    // {
+    //     $prefix = substr($requestUri, 0 , strrpos($requestUri, '_') - 1);
+    //     return ($prefix == 'payisgood') ? $this->getCoinTransactionId($requestUri) : null;
+    // }
+    // function getCoinTransactionIdIsBad($requestUri)
+    // {
+    //     $prefix = substr($requestUri, 0 , strrpos($requestUri, '_') - 1);
+    //     return ($prefix == 'payisgood') ? $this->getCoinTransactionId($requestUri) : null;
+    // }
+    function getCoinTransactionId($requestUri, $prefix)
+    {
+        $separatorNumber = strrpos($requestUri, '_');
+        $extractedPrefix = substr($requestUri, 0 , $separatorNumber - 1);
+        if ($prefix == $extractedPrefix) {
+            $id = substr($requestUri, $separatorNumber + 1);
+            $urlList = $this->getElements(
+                "SELECT coin_transaction_id FROM pay_system_transaction WHERE coin_transaction_id = ? AND pay_system_transaction_notactivelink < 1",
+                [$id]
+            );
+            return (array_key_exists(0, $urlList)) ? $urlList[0]['coin_transaction_id'] : null;
+        }
+        return null;
+    }
 }
