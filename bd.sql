@@ -64,7 +64,9 @@ CREATE TABLE valuta_exchange_rate
     valuta_exchange_rate_value FLOAT(5,2) NOT NULL
 )
 ENGINE=INNODB;
-
+/*
+INSERT INTO valuta_exchange_rate (valuta_exchange_rate_data, valuta_name, valuta_exchange_rate_value) VALUES (1647350218, 'RUB', 100)
+*/
 CREATE TABLE coin_transaction
 (
     coin_transaction_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -89,6 +91,7 @@ CREATE TABLE pay_system_transaction
     FOREIGN KEY (valuta_exchange_rate_id) REFERENCES valuta_exchange_rate(valuta_exchange_rate_id),
     FOREIGN KEY (coin_transaction_id) REFERENCES coin_transaction(coin_transaction_id)
 )
+ENGINE=INNODB;
 
 CREATE TABLE customer_password_recovery
 (
@@ -739,4 +742,7 @@ SELECT condition_value_id FROM condition_value WHERE data_name = 'vehicle model'
 INSERT INTO provider (provider_login, provider_firstname, provider_secondname, provider_registration_date, provider_status, provider_password) VALUES ('Vasa', 'Vasiliy', 'Ivanov', 1639056038, 'file_treatment', '$2y$10$mabqiowX1cpNsPYy5B60KOxM9xizdF7wMkd3wCm3qT2/7b3GNCUiK');
 INSERT INTO provider (provider_login, provider_firstname, provider_secondname, provider_registration_date, provider_status, provider_password) VALUES ('Peta', 'Peter', 'Ivanov', 1639056038, 'file_treatment', '$2y$10$mabqiowX1cpNsPYy5B60KOxM9xizdF7wMkd3wCm3qT2/7b3GNCUiK');
 --
---
+-- регистрация обменного курса
+INSERT INTO valuta_exchange_rate (valuta_exchange_rate_data, valuta_name, valuta_exchange_rate_value) VALUES (1647350218, 'RUB', 100.00);
+INSERT INTO valuta_exchange_rate (valuta_exchange_rate_data, valuta_name, valuta_exchange_rate_value) VALUES (1647350218, 'USD', 1.00);
+INSERT INTO valuta_exchange_rate (valuta_exchange_rate_data, valuta_name, valuta_exchange_rate_value) VALUES (1647350218, 'EUR', 1.20);

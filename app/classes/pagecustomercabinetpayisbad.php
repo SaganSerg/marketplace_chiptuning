@@ -1,7 +1,7 @@
 <?php
-class PageCustomerCabinetPayisgood extends PageCustomerCabinet
+class PageCustomerCabinetPayisbad extends PageCustomerCabinet
 {
-    protected $pageName = '/payisgood';
+    protected $pageName = '/payisbad';
     function __construct($name, $customer_id, $login, $coins)
     {
         $this->dictionaryMain = $this->composeDictionaryMain();
@@ -21,7 +21,7 @@ class PageCustomerCabinetPayisgood extends PageCustomerCabinet
         return <<<HTML
         {$this->getFacadeHeader()}
         {$this->getNavigation()}
-        оплата прошла
+        оплата не прошла
     {$this->getFacadeFooter()}
 HTML;
     }

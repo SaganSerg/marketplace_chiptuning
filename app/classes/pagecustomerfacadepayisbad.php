@@ -1,7 +1,7 @@
 <?php
-class PageCustomerFacadeWronglink extends PageCustomerFacade
+class PageCustomerFacadePayisbad extends PageCustomerFacade
 {
-    protected $pageName = '/wronglink';
+    protected $pageName = '/payisbad';
     protected const INPUT_ATTRIBUTE_NAME = [];
     function __construct(
         string $name,
@@ -23,9 +23,9 @@ class PageCustomerFacadeWronglink extends PageCustomerFacade
                 'en' => 'You must give your consent to the use of cookies',
                 'ru' => 'Вы должны дать свое согласие на использование файлов-cookie'
             ],
-            'Сontacts' => [
-                'en' => 'Contacts',
-                'ru' => 'Контакты'
+            'Payment Failed' => [
+                'en' => 'Payment failed',
+                'ru' => 'Оплата не прошла'
             ]
         ];
     }
@@ -34,11 +34,9 @@ class PageCustomerFacadeWronglink extends PageCustomerFacade
     {
         $hiddenInputs = $this->getComposedHiddenInputs();
         return <<<HTML
-        {$this->getFacadeHeader('contacts', $hiddenInputs)}
+        {$this->getFacadeHeader('about', $hiddenInputs)}
         <article class='main__facade-article facade-article'>
-            <h1 class='facade-article__title'>{$this->getText($this->lang, 'Сontacts')}</h1>
-            <p class='facade-article__paragraph'>Это первый адрес</p>
-            <p class='facade-article__paragraph'>Это второй адрес</p>
+            <h1 class='facade-article__title'>{$this->getText($this->lang, 'Payment Failed')}</h1>
         </article>
        
         {$this->getFacadeFooter($this->pageName, $hiddenInputs)}

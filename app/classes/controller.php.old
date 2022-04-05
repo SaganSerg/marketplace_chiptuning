@@ -38,7 +38,6 @@ abstract class Controller
             ) 
             {
                 if ($json = curl_exec($init)) {
-                    // echo $json, '<br>';
                     return $json; 
                 }
             }
@@ -946,9 +945,9 @@ abstract class Controller
                 ||
                 ($email_for_registration_url = ($email_for_registration_id = $model->getRegistrationEmailId($_SERVER['REQUEST_URI'])) ? $_SERVER['REQUEST_URI'] : false)
                 ||
-                ($paySystemIsBadUrl = ($paySysterIsBadId = $model->getCoinTransactionId($_SERVER['REQUEST_URI'], 'payisbad')) ? $_SERVER['REQUEST_URI'] : false)
-                ||
                 ($paySystemIsGoodUrl = ($paySystemIsGoodId = $model->getCoinTransactionId($_SERVER['REQUEST_URI'], 'payisgood')) ? $_SERVER['REQUEST_URI'] : false)
+                ||
+                ($paySystemIsBadUrl = ($paySysterIsBadId = $model->getCoinTransactionId($_SERVER['REQUEST_URI'], 'payisbad')) ? $_SERVER['REQUEST_URI'] : false)
             );
             $cookiesmanagement = $GLOBALS['cookiesmanagement'];
             $mark = '/notfound';
@@ -1159,7 +1158,7 @@ abstract class Controller
                     $valuta_exchange_rate_id = $model->getElements(
                         'SELECT valuta_exchange_rate_id FROM valuta_exchange_rate WHERE valuta_name = ? ORDER BY valuta_exchange_rate_id DESC LIMIT 1',
                         [$customerData['customer_valuta']]
-                    )[0]['valuta_exchange_rate_id'];
+                    )[0];
                     
                     // $exchangeRateArr = $model->getElements(
                     //     'SELECT * FROM valuta_exchange_rate WHERE valuta_name = ?',
@@ -1187,8 +1186,8 @@ abstract class Controller
                             customer_id, 
                             coin_transaction_date, 
                             coin_transaction_sum, 
-                            coin_transaction_status
-                            ) VALUE (?, ?, ?, ?)',
+                            coin_transaction_status, 
+                            ) VAlUE (?, ?, ?, ?)',
                         [$_SESSION['customer_id'], $date, $coins, 'toPaySystem']
                     );
                     $paySysterTransactionId = $model->addElements(
@@ -1212,26 +1211,20 @@ abstract class Controller
                         'userName' => $userName,
                         'password' => $password
                     ];
-                    // $init = curl_init('https://3dsec.sberbank.ru/payment/rest/registerPreAuth.do'); // это реальный адрес, потому нужно будет включить
-                    // $init = curl_init('https://3dsec.sberbank.ru/payment/rest/register.do');
-                    $init = curl_init('http://sber.loc/registerPreAuth.php'); // надо потом будет удалить
+                    $init = curl_init('https://3dsec.sberbank.ru/payment/rest/registerPreAuth.do');
 
                     curl_setopt($init, CURLOPT_RETURNTRANSFER, true);
                     curl_setopt($init, CURLOPT_POST, true);
                     curl_setopt($init, CURLOPT_POSTFIELDS, $requestBody);
                     $json = curl_exec($init);
-                    echo $json;
                     $text = json_decode($json, true);
                     if ($text === null) {
-                        echo '$text==null';
                         return self::getNotFound($mark);
                     }
                     if (!is_array($text)) {
-                        echo '!is_array($text)';
                         return self::getNotFound($mark);
                     }
                     if (!array_key_exists('formUrl', $text) || !array_key_exists('orderId', $text)) {
-                        echo 'not formUrl and orderId';
                         $codeError = array_key_exists('errorCode', $text) ? $text['errorCode'] : null; // надо будет потом создать страничку с обработкой ошибок
                         $messageError = array_key_exists('errorMessage', $text) ? $text['errorMessage'] : null; // это на потом, после того как создам страничку для обработки ошибок
                         return self::getNotFound($mark);
@@ -1620,8 +1613,7 @@ abstract class Controller
                 }
             }
             if ($alterableURL) {
-                if (isset($customerPasswordRecoveryUrl) && $customerPasswordRecoveryUrl) {
-                    $mark = $customerPasswordRecoveryUrl;
+                if ($mark = $customerPasswordRecoveryUrl) {
                     $customer_id = $model->getElements(
                         "SELECT customer_id FROM customer_password_recovery WHERE customer_password_recovery_id = ?",
                         [$customerPasswordRecoveryId]
@@ -1652,8 +1644,7 @@ abstract class Controller
                         return self::returnPageCustomerCabinetPayWithStaingId($mark, $customer_email, $pass, $model, $cookiesmanagement);
                     }
                 }
-                if (isset($email_for_registration_url) && $email_for_registration_url) {
-                    $mark = $email_for_registration_url;
+                if ($mark = $email_for_registration_url) {
                     $registrationEmail = $model->getElements(
                         "SELECT email_for_registration_email FROM email_for_registration WHERE email_for_registration_id = ?",
                         [$email_for_registration_id]
@@ -1666,68 +1657,47 @@ abstract class Controller
                     }
                     return self::getNotFound($mark);
                 }
-                if (isset($paySystemIsGoodUrl) && $paySystemIsGoodUrl) {
-                    $mark = $paySystemIsGoodUrl;
+                if ($mark = $paySystemIsGoodUrl) {
                     if ($_SERVER['REQUEST_METHOD'] == "GET") {
                         session_start();
-                        // $url = 'https://3dsec.sberbank.ru/payment/rest/getOrderStatusExtended.do'; // это реальный адрес
-                        $url = 'http://sber.loc/getOrderStatusExtended.php'; // надо будет удалить
+                        $url = 'https://3dsec.sberbank.ru/payment/rest/getOrderStatusExtended.do';
                         $requestBody = [
                             'userName' => $GLOBALS['sberUserName'],
                             'password' => $GLOBALS['sberPass'],
-                            'orderNumber' => $paySystemIsGoodId
+                            'orderId' => $paySystemIsGoodId
                         ];
-                        if (!$json = self::getJSONfromOuterService($url, $requestBody)) 
+                        if ($json = self::getJSONfromOuterService($url, $requestBody)) 
                         {
-                            echo 'after getJSONfromOuterService';
                             return self::getNotFound($mark); // надо будет в страничку, что-то пошло не так, добавить параметер строку и словарь
                             // здесь ошибка подразумевает, что-то банк отправил и мы это получили, но что-то не то и поэтому непонятно, что произошло. Поэтому нужно чтобы пользователь проверил списались ли у него деньги и если списались нужно, чтобы он с нами связался и мы бы вместе разобрались бы с тем, что случилось. Произошла ошибка на стороне банка, Вам нужно связаться с нами.
                         }
-                        // var_dump($json);
-                        // echo '<br>';
                         $text = json_decode($json, true);
-                        // echo json_last_error(), '<br>'; 
                         if (json_last_error() !== 0) {
-                            // echo 'json_last_error', '<br>';
                             return self::getNotFound($mark); // надо будет передать ошибку может быть поможет
                         }
-                        $actionCode = array_key_exists('actionCode', $text) ? $text['actionCode'] : null;
-                        $orderStatus = array_key_exists('orderStatus', $text) ? $text['orderStatus'] : null;
-                        $orderNumber = array_key_exists('orderNumber', $text) ? $text['orderNumber'] : null;
-
+                        
+                        // orderNumber
+                        // actionCode
+                        // actionCodeDescription
+                        // amount
+                        // date
+                        // ip
+                        // paymentWay -- от версии 09
+                        // if (isset($text['orderNumber']) && isset($text['actionCode']) ))
+                        $orderNumber = isset($text['orderNumber']) ? $text['orderNumber'] : null;
+                        $actionCode = isset($text['actionCode']) ? $text['actionCode'] : null;
+                        $orderStatus = isset($text['orderStatus']) ? $text['orderStatus'] : null;
                         if ($orderNumber && $actionCode === 0 && $orderStatus === 1) { // надо наверное числовые коды вынести в переменные, чтобы можно было менять из одного места
-                            $numberNotactiveLine = $model->updateElements(
+                            $model->updateElements(
                                 "UPDATE `pay_system_transaction` SET `pay_system_transaction_notactivelink` = 1 WHERE `coin_transaction_id` = ?",
                                 [$paySystemIsGoodId]
                             );
-                            if ($numberNotactiveLine) {
-                                $customerArr = $model->getElements(
-                                    'SELECT * FROM coin_transaction WHERE coin_transaction_id = ?',
-                                    [$paySystemIsGoodId]
-                                )[0];
-                                if ($customerArr) {
-                                    echo 'before update customer coins'; // надо будет удалить
-                                    $numberCoinsLine = $model->updateElements(
-                                        "UPDATE `customer` SET `customer_coins` = `customer_coins` + ? WHERE `customer_id` = ?",
-                                        [$customerArr['coin_transaction_sum'], $customerArr['customer_id']]
-                                    );
-                                    if ($numberCoinsLine != 1) {
-                                        echo 'Из таблицы customer вернулось больше одно строки или ни одной';
-                                        return self::getNotFound($mark);
-                                    }
-                                } else {
-                                    echo 'Если из таблицы coin_transaction ничего не вернулось';
-                                    return self::getNotFound($mark);
-                                }
-                            } else {
-                                echo 'в таблице pay_system_transaction ничего не обновилось';
-                                return self::getNotFound($mark);
-                            }
-                        } else {
-                            echo 'cтатусные переменные в не соответсвуют проведению оплаты';
-                            return self::getNotFound($mark);
-                        }
+                            $customerId = $model->getElements(
+                                'SELECT * FROM coin_transaction WHERE coin_transaction_id = ?',
+                                [$paySystemIsGoodId]
+                            )[0]['customer_id'];
 
+                        }
                         if (isset($_SESSION['customer_id'])) {
                             $customerData = $model->getElements(
                                 'SELECT * FROM customer WHERE customer_id = ?',
@@ -1737,11 +1707,9 @@ abstract class Controller
                         }
                         return (new PageCustomerFacadeIndex($mark, null))->getHTML();
                     }
-                    echo 'неправильная ссылка';
                     return self::getNotFound($mark);
                 }
-                if (isset($paySystemIsBadUrl) && $paySystemIsBadUrl) {
-                    $mark = $paySystemIsBadUrl;
+                if ($mark = $paySystemIsBadUrl) {
                     if ($_SERVER['REQUEST_METHOD'] == "GET") {
                         session_start();
                         if (isset($_SESSION['customer_id'])) {
@@ -1749,9 +1717,9 @@ abstract class Controller
                                 'SELECT * FROM customer WHERE customer_id = ?',
                                 [$_SESSION['customer_id']]
                             )[0];
-                            return (new PageCustomerCabinetPayisbad($mark, $_SESSION['customer_id'], $customerData['customer_email'], $customerData['customer_coins']))->getHTML();
+                            return (new PageCustomerCabonetPayisbad($mark, $_SESSION['customer_id'], $customerData['customer_email'], $customerData['customer_coins']))->getHTML(); // надо сделать страничку
                         }
-                        return (new PageCustomerFacadePayisbad($mark, null))->getHTML();
+                        return (new PageCustomerFacadePayisbad($mark, null))->getHTML(); // надо будет сделать страницу
                     }
                     return self::getNotFound($mark);
                 }

@@ -745,14 +745,15 @@ class Model
     function getCoinTransactionId($requestUri, $prefix)
     {
         $separatorNumber = strrpos($requestUri, '_');
-        $extractedPrefix = substr($requestUri, 0 , $separatorNumber - 1);
+        $extractedPrefix = substr($requestUri, 1 , $separatorNumber - 1);
         if ($prefix == $extractedPrefix) {
             $id = substr($requestUri, $separatorNumber + 1);
             $urlList = $this->getElements(
                 "SELECT coin_transaction_id FROM pay_system_transaction WHERE coin_transaction_id = ? AND pay_system_transaction_notactivelink < 1",
                 [$id]
             );
-            return (array_key_exists(0, $urlList)) ? $urlList[0]['coin_transaction_id'] : null;
+            $data = (array_key_exists(0, $urlList)) ? $urlList[0]['coin_transaction_id'] : null;
+            return $data;
         }
         return null;
     }
