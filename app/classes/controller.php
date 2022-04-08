@@ -1119,7 +1119,7 @@ abstract class Controller
                           <p>' . self::getText($lang, 'Registration on the website', $arrPhrases) . '</p>
                           <table>
                             <tr>
-                              <td> ' . self::getText($lang, 'In order to register in our system, you need to follow the link', $arrPhrases) . '<a href="' . $GLOBALS['protocol'] . $GLOBALS['domain'] . $email_for_registration_url . '">' . $GLOBALS['domain'] . $email_for_registration_url . '</td>
+                              <td> ' . self::getText($lang, 'In order to register in our system, you need to follow the link', $arrPhrases) . '<a href="' . $GLOBALS['protocol'] . '://' . $GLOBALS['domain'] . $email_for_registration_url . '">' . $GLOBALS['domain'] . $email_for_registration_url . '</td>
                             </tr>
                           </table>
                         </body>
@@ -1706,7 +1706,6 @@ abstract class Controller
                                     [$paySystemIsGoodId]
                                 )[0];
                                 if ($customerArr) {
-                                    echo 'before update customer coins'; // надо будет удалить
                                     $numberCoinsLine = $model->updateElements(
                                         "UPDATE `customer` SET `customer_coins` = `customer_coins` + ? WHERE `customer_id` = ?",
                                         [$customerArr['coin_transaction_sum'], $customerArr['customer_id']]

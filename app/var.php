@@ -23,8 +23,8 @@ $treatmentedFile = 'treatmented';
 $notTreatmentedFile = 'nottreatmented';
 
 $fileSizeFromCustomer = 10*1024*1024;
-// $ourMail = 'websagan@gmail.com';
-$ourMail = 'wuloruwu@vh-cpanel4.area.netfox.ru';
+$ourMail = 'websagan@gmail.com';
+// $ourMail = 'wuloruwu@vh-cpanel4.area.netfox.ru';
 $saveLinkPasswordTime = 60*60*24;
 $accessRight = 0777;
 
