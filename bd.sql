@@ -73,7 +73,7 @@ CREATE TABLE coin_transaction
     customer_id INT UNSIGNED NOT NULL,
     coin_transaction_date BIGINT NOT NULL,
     coin_transaction_sum SMALLINT NOT NULL, -- сумма в коинах
-    coin_transaction_status CHAR(25) NOT NULL, -- в данном поле указывается какая это транзакция зачисление денег toPaySystem или списание коинов downCoins , если оплата в платежной системе не проходит -- PaySystemFailed
+    coin_transaction_status CHAR(25) NOT NULL, -- в данном поле указывается какая это транзакция зачисление денег toPaySystem или списание коинов downCoins , если оплата в платежной системе не проходит -- PaySystemFailed, если оплата прошла -- PaySystemOK
 
     FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
 )

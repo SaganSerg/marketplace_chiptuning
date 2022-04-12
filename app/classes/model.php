@@ -464,7 +464,7 @@ class Model
             $result = $appDB->prepare($query);
             $exec = $result->execute($parameters);
             $appDB->commit();
-            return $exec; // возвращает количество модифицированных строк
+            return $exec; // возвращает bool
         } catch (PDOException $e) {
             echo $e->getMessage();
             $appDB->commit();

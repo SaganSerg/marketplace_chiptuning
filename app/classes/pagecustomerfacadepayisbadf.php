@@ -1,7 +1,7 @@
 <?php
-class PageCustomerFacadePayisbad extends PageCustomerFacade
+class PageCustomerFacadePayisbadF extends PageCustomerFacade
 {
-    protected $pageName = '/payisbad';
+    protected $pageName = '/payisbadf';
     protected const INPUT_ATTRIBUTE_NAME = [];
     function __construct(
         string $name,

@@ -1,10 +1,46 @@
 <?php
 abstract class Controller
 {
-    static private $pppp = '123456';
-    static private $allCustomerCabinetPage = ['/allparameters', '/brand', '/dealsdeal', '/dealsdeals', '/ecu', '/history', '/model', '/pay', '/profile', '/treatment', '/payisgood'];
-    static private $allCustomerFacadePage = ['/contacts', '/index', '/newpassword', '/notfound', '/rememberpassword', '/sentmail', '/sentmailregistration', '/messagesentmailregistration', '/termsuse', '/about', '/registration'];
-    static private $allProviderPage = ['/admin', '/deal', '/deals', '/gate', '/valuta'];
+    // static private $pppp = '123456';
+
+    static private $allCustomerCabinetPage = [
+        '/allparameters', 
+        '/brand', 
+        '/dealsdeal', 
+        '/dealsdeals', 
+        '/ecu', 
+        '/history', 
+        '/model', 
+        '/pay', 
+        '/profile', 
+        '/treatment',
+        '/payisbad',
+        '/payisgood'
+    ];
+
+    static private $allCustomerFacadePage = [
+        '/contacts', 
+        '/index', 
+        '/newpassword', 
+        '/notfound', 
+        '/rememberpassword', 
+        '/sentmail', 
+        '/sentmailregistration', 
+        '/messagesentmailregistration', 
+        '/termsuse', 
+        '/about', 
+        '/registration',
+        '/payisbadf',
+        '/wronglink'
+    ];
+
+    static private $allProviderPage = [
+        '/admin', 
+        '/deal', 
+        '/deals', 
+        '/gate', 
+        '/valuta'
+    ];
 
     // static function getDataFromOurerService(string $url, array $requestBody)
     // {
@@ -389,7 +425,7 @@ abstract class Controller
                         [$_SESSION['customer_id']]
                     )[0]['customer_coins'];
                     $transactions = $model->getElements(
-                        "SELECT coin_transaction_id, coin_transaction_date, coin_transaction_sum, coin_transaction_status FROM coin_transaction WHERE customer_id = ?",
+                        "SELECT coin_transaction_id, coin_transaction_date, coin_transaction_sum, coin_transaction_status FROM coin_transaction WHERE customer_id = ? AND (coin_transaction_status = 'PaySystemOK' OR coin_transaction_status = 'downCoins')",
                         [$_SESSION['customer_id']]
                     );
                     $buyList = [];
@@ -1267,11 +1303,13 @@ abstract class Controller
                     }
                     return self::returnPageCustomerCabinetPayWithStaingId($mark, $_POST['Email'], $_POST['Pass'], $model, $cookiesmanagement);
                 }
-                $fromPageArr = ['/dealsdeals', '/dealsdeal', '/treatment', '/bigfile', '/profile', '/profilenotupdated', '/profileupdated', '/history', '/pay', '/payisgood'];
+                // $fromPageArr = ['/dealsdeals', '/dealsdeal', '/treatment', '/bigfile', '/profile', '/profilenotupdated', '/profileupdated', '/history', '/pay', '/payisgood'];
+                $fromPageArr = self::$allCustomerCabinetPage;
                 return self::routingSimplePayPage($fromPageArr, $cookiesmanagement, $model);
             }
             if ($mark == '/treatment') {
-                $fromPageArr = ['/dealsdeals', '/dealsdeal', '/history', '/profile', '/profilenotupdated', '/profileupdated', '/pay', '/brand', '/payisgood'];
+                // $fromPageArr = ['/dealsdeals', '/dealsdeal', '/history', '/profile', '/profilenotupdated', '/profileupdated', '/pay', '/brand', '/payisgood'];
+                $fromPageArr = self::$allCustomerCabinetPage;
                 if (self::checkMethodPostAndPageNames($fromPageArr)) {
                     return self::getTreatmentPage($model, $cookiesmanagement, $mark, false);
                 }
@@ -1428,7 +1466,8 @@ abstract class Controller
                 }
             }
             if ($mark == '/dealsdeals') {
-                $fromPageArr = ['/pay', '/dealsdeal', '/treatment', '/model', '/brand', '/ecu', '/profile', '/profilenotupdated', '/profileupdated', '/history'];
+                // $fromPageArr = ['/pay', '/dealsdeal', '/treatment', '/model', '/brand', '/ecu', '/profile', '/profilenotupdated', '/profileupdated', '/history'];
+                $fromPageArr = self::$allCustomerCabinetPage;
                 return self::routingSimpleDealsdeals3($fromPageArr, $cookiesmanagement, $model);
             }
             if ($mark == '/dealsdeal') {
@@ -1470,7 +1509,7 @@ abstract class Controller
                 }
             }
             if ($mark == '/history') {
-                $fromPageArr = ['/pay', '/dealsdeal', '/treatment', '/profile', '/profilenotupdated', '/profileupdated', '/history', '/bigfile', '/dealsdeals'];
+                $fromPageArr = self::$allCustomerCabinetPage;
                 return self::routingSimpleHistory3($fromPageArr, $cookiesmanagement, $model);
             }
             if ($mark == '/profile') {
@@ -1506,7 +1545,8 @@ abstract class Controller
                     }
                     return self::getProfile($mark, $cookiesmanagement, $model);
                 }
-                $fromPageArr = ['/pay', '/dealsdeal', '/treatment', '/profilenotupdated', '/profileupdated', '/history', '/bigfile', '/dealsdeals'];
+                // $fromPageArr = ['/pay', '/dealsdeal', '/treatment', '/profilenotupdated', '/profileupdated', '/history', '/bigfile', '/dealsdeals'];
+                $fromPageArr = self::$allCustomerCabinetPage;
                 return self::routingSimpleProfile3($fromPageArr, $cookiesmanagement, $model);
             }
             if ($mark == '/rememberpassword') {
@@ -1700,7 +1740,11 @@ abstract class Controller
                                 "UPDATE `pay_system_transaction` SET `pay_system_transaction_notactivelink` = 1 WHERE `coin_transaction_id` = ?",
                                 [$paySystemIsGoodId]
                             );
-                            if ($numberNotactiveLine) {
+                            $numberChangeStatusLine = $model->updateElements(
+                                "UPDATE `coin_transaction` SET `coin_transaction_status` = ? WHERE `coin_transaction_id` = ?",
+                                ['PaySystemOK', $paySystemIsGoodId]
+                            );
+                            if ($numberNotactiveLine && $numberChangeStatusLine) {
                                 $customerArr = $model->getElements(
                                     'SELECT * FROM coin_transaction WHERE coin_transaction_id = ?',
                                     [$paySystemIsGoodId]
@@ -1723,6 +1767,10 @@ abstract class Controller
                                 return self::getNotFound($mark);
                             }
                         } else {
+                            $numberOfLines = $model->updateElements(
+                                "UPDATE `coin_transaction` SET `coin_transaction_status` = ? WHERE `coin_transaction_id` = ?", 
+                                [ 'PaySystemFailed', $paySystemIsGoodId]
+                            );
                             echo 'cтатусные переменные в не соответсвуют проведению оплаты';
                             return self::getNotFound($mark);
                         }
@@ -1742,15 +1790,21 @@ abstract class Controller
                 if (isset($paySystemIsBadUrl) && $paySystemIsBadUrl) {
                     $mark = $paySystemIsBadUrl;
                     if ($_SERVER['REQUEST_METHOD'] == "GET") {
-                        session_start();
-                        if (isset($_SESSION['customer_id'])) {
-                            $customerData = $model->getElements(
-                                'SELECT * FROM customer WHERE customer_id = ?',
-                                [$_SESSION['customer_id']]
-                            )[0];
-                            return (new PageCustomerCabinetPayisbad($mark, $_SESSION['customer_id'], $customerData['customer_email'], $customerData['customer_coins']))->getHTML();
+                        $numberOfLines = $model->updateElements(
+                            "UPDATE `coin_transaction` SET `coin_transaction_status` = ? WHERE `coin_transaction_id` = ?", 
+                            [ 'PaySystemFailed', $paySystemIsBadId]
+                        );
+                        if ($numberOfLines === 1) {
+                            session_start();
+                            if (isset($_SESSION['customer_id'])) {
+                                $customerData = $model->getElements(
+                                    'SELECT * FROM customer WHERE customer_id = ?',
+                                    [$_SESSION['customer_id']]
+                                )[0];
+                                return (new PageCustomerCabinetPayisbad($mark, $_SESSION['customer_id'], $customerData['customer_email'], $customerData['customer_coins']))->getHTML();
+                            }
+                            return (new PageCustomerFacadePayisbadF($mark, null))->getHTML();
                         }
-                        return (new PageCustomerFacadePayisbad($mark, null))->getHTML();
                     }
                     return self::getNotFound($mark);
                 }
