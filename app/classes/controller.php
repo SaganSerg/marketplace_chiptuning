@@ -1,4 +1,12 @@
 <?php
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
+require $_SERVER["DOCUMENT_ROOT"] . '/' . 'vendor/autoload.php';
+
+
+
 abstract class Controller
 {
     // static private $pppp = '123456';
@@ -1161,10 +1169,45 @@ abstract class Controller
                         </body>
                         </html>
                     ';
-                    if (mail($to, $subject, $message, implode("\r\n", $headers))) {
+                    // if (mail($to, $subject, $message, implode("\r\n", $headers))) {
+                    //     return (new PageCustomerFacadeMessagesentmailregistration($mark, null, $email_for_registration_email))->getHTML();
+                    // } 
+                    // else {
+                    //     return self::getNotFound($mark);
+                    // }
+                    $mail = new PHPMailer(true);
+                    try {
+                        $mail->SMTPDebug = SMTP::DEBUG_OFF;                      
+                        $mail->isSMTP();                                            
+                        $mail->Host       = 'smtp.yandex.ru';                     
+                        $mail->SMTPAuth   = true;                                   
+                        $mail->Username   = 'sagan.sergei.mih@yandex.ru';                     
+                        $mail->Password   = 'hfitdkocawrdagci';                               
+                        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            
+                        $mail->Port       = 465;                                    
+                    
+                        //Recipients
+                        $mail->setFrom('sagan.sergei.mih@yandex.ru', 'chiptuning'); // надо будет исправить адрес и имя отправителя
+                        $mail->addAddress($to, '');     
+                        // $mail->addAddress('ellen@example.com');               //Name is optional
+                        // $mail->addReplyTo('info@example.com', 'Information');
+                        // $mail->addCC('cc@example.com');
+                        // $mail->addBCC('bcc@example.com');
+                    
+                        //Attachments
+                        // $mail->addAttachment('/var/tmp/file.tar.gz');         //Add attachments
+                        // $mail->addAttachment('/tmp/image.jpg', 'new.jpg');    //Optional name
+                    
+                        //Content
+                        $mail->isHTML(true);                                  //Set email format to HTML
+                        $mail->Subject = $subject;
+                        $mail->Body    = $message;
+                        $mail->AltBody = 'This is the body in plain text for non-HTML mail clients'; // надо будет исправить
+                    
+                        $mail->send();
                         return (new PageCustomerFacadeMessagesentmailregistration($mark, null, $email_for_registration_email))->getHTML();
-                    } 
-                    else {
+                    } catch (Exception $e) {
+                        // echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
                         return self::getNotFound($mark);
                     }
                 }
@@ -1188,98 +1231,103 @@ abstract class Controller
                 if (self::checkMethodPostAndPageName('/pay') && self::checkMethodName('coins', 'POST', $_POST)) {
                     $coins = (float) $model->cleaningDataForm($_POST['coins']);
                     self::startSessionWithCheck($cookiesmanagement);
-                    $customerData = $model->getElements(
-                        'SELECT * FROM customer WHERE customer_id = ?',
-                        [$_SESSION['customer_id']]
-                    )[0];
-                    $valuta_exchange_rate_id = $model->getElements(
-                        'SELECT valuta_exchange_rate_id FROM valuta_exchange_rate WHERE valuta_name = ? ORDER BY valuta_exchange_rate_id DESC LIMIT 1',
-                        [$customerData['customer_valuta']]
-                    )[0]['valuta_exchange_rate_id'];
-                    
-                    // $exchangeRateArr = $model->getElements(
-                    //     'SELECT * FROM valuta_exchange_rate WHERE valuta_name = ?',
-                    //     [$customerData['customer_valuta']]
-                    // );
-
-
-                    // foreach( $exchangeRateArr as $elem ) {
-                    //     $exchangeRate = $elem['valuta_exchange_rate'];
-                    // }
-                    
-                    // $isCoinTransaction = !!$model-getElements(
-                    //     'SELECT * FROM coin_transaction WHERE coin_transaction_link = ? AND coin_transaction_link_utilized = 0',
-                    //     [$coinTransactionLink]
-                    // );
-                    // do {
-                    //     $coinTransactionLink = '/' . $_SESSION['customer_id'] . 'paycoins' . $date; // /1paycoins67464477666 -- такого типа будет ссылка, потом к этой строке будет добавлена
-                    //     $isCoinTransaction = $model-getElements(
-                    //         'SELECT * FROM coin_transaction WHERE coin_transaction_link = ? AND coin_transaction_link_utilized = 0',
-                    //         [$coinTransactionLink]
-                    //     );
-                    // } while ($isCoinTransaction);
-                    $coinsTransactionId = $model->addElements(
-                        'INSERT INTO coin_transaction (
-                            customer_id, 
-                            coin_transaction_date, 
-                            coin_transaction_sum, 
-                            coin_transaction_status
-                            ) VALUE (?, ?, ?, ?)',
-                        [$_SESSION['customer_id'], $date, $coins, 'toPaySystem']
-                    );
-                    $paySysterTransactionId = $model->addElements(
-                        'INSERT INTO pay_system_transaction (coin_transaction_id, valuta_exchange_rate_id) VALUE (?, ?)',
-                        [$coinsTransactionId, $valuta_exchange_rate_id]
-                    );
-                    $amount = $coins;
-                    $orderNumber = $coinsTransactionId;
-                    $returnUrl = $GLOBALS['protocol'] . '://' . $GLOBALS['domain'] .  '/payisgood_' . $coinsTransactionId; // надо строки запихнут в переменные
-                    $returnUrlFail = $GLOBALS['protocol'] . '://' . $GLOBALS['domain'] .  '/payisbad_' . $coinsTransactionId; // надо строки запихнуть в переменные
-                    /* 
-                        я хочу сделать отдельный урл для неудачной оплаты, потому что возможен вариант, когда время ссесси истечет и покупатель, уже не сможет вернуться в свой кабинет и его нужно куда-то выбросить в наружу, но при этом сообщить, что оплата не прошла, чтобы он не офигел. Я такого не делаю при успешной оплате, потому что даже если сессия истечет и человека выброшу из кабинета, он вернувшись в кабинет все равно увидит, что баланс пополнен
-                    */
-                    $userName = 'somebody'; // надо подставить правильное
-                    $password = 123456; // надо подставить правильное
-                    $requestBody = [
-                        'amount' => $amount,
-                        'orderNumber' => $orderNumber, 
-                        'returnUrl' => $returnUrl,
-                        'failUrl' => $returnUrlFail,
-                        'userName' => $userName,
-                        'password' => $password
-                    ];
-                    // $init = curl_init('https://3dsec.sberbank.ru/payment/rest/registerPreAuth.do'); // это реальный адрес, потому нужно будет включить
-                    // $init = curl_init('https://3dsec.sberbank.ru/payment/rest/register.do');
-                    $init = curl_init('http://sber.loc/registerPreAuth.php'); // надо потом будет удалить
-
-                    curl_setopt($init, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($init, CURLOPT_POST, true);
-                    curl_setopt($init, CURLOPT_POSTFIELDS, $requestBody);
-                    $json = curl_exec($init);
-                    echo $json;
-                    $text = json_decode($json, true);
-                    if ($text === null) {
-                        echo '$text==null';
+                    if ($_SESSION['customer_id']) {
+                        $customerData = $model->getElements(
+                            'SELECT * FROM customer WHERE customer_id = ?',
+                            [$_SESSION['customer_id']]
+                        )[0];
+                        $valuta_exchange_rate_arr = $model->getElements(
+                            'SELECT valuta_exchange_rate_id, valuta_exchange_rate_value FROM valuta_exchange_rate WHERE valuta_name = ? ORDER BY valuta_exchange_rate_id DESC LIMIT 1',
+                            [$customerData['customer_valuta']]
+                        )[0];
+                        $valuta_exchange_rate_id = $valuta_exchange_rate_arr['valuta_exchange_rate_id'];
+                        $valuta_exchange_rate_value = $valuta_exchange_rate_arr['valuta_exchange_rate_value'];
+                        
+                        // $exchangeRateArr = $model->getElements(
+                        //     'SELECT * FROM valuta_exchange_rate WHERE valuta_name = ?',
+                        //     [$customerData['customer_valuta']]
+                        // );
+    
+    
+                        // foreach( $exchangeRateArr as $elem ) {
+                        //     $exchangeRate = $elem['valuta_exchange_rate'];
+                        // }
+                        
+                        // $isCoinTransaction = !!$model-getElements(
+                        //     'SELECT * FROM coin_transaction WHERE coin_transaction_link = ? AND coin_transaction_link_utilized = 0',
+                        //     [$coinTransactionLink]
+                        // );
+                        // do {
+                        //     $coinTransactionLink = '/' . $_SESSION['customer_id'] . 'paycoins' . $date; // /1paycoins67464477666 -- такого типа будет ссылка, потом к этой строке будет добавлена
+                        //     $isCoinTransaction = $model-getElements(
+                        //         'SELECT * FROM coin_transaction WHERE coin_transaction_link = ? AND coin_transaction_link_utilized = 0',
+                        //         [$coinTransactionLink]
+                        //     );
+                        // } while ($isCoinTransaction);
+                        $coinsTransactionId = $model->addElements(
+                            'INSERT INTO coin_transaction (
+                                customer_id, 
+                                coin_transaction_date, 
+                                coin_transaction_sum, 
+                                coin_transaction_status
+                                ) VALUE (?, ?, ?, ?)',
+                            [$_SESSION['customer_id'], $date, $coins, 'toPaySystem']
+                        );
+                        $paySysterTransactionId = $model->addElements(
+                            'INSERT INTO pay_system_transaction (coin_transaction_id, valuta_exchange_rate_id) VALUE (?, ?)',
+                            [$coinsTransactionId, $valuta_exchange_rate_id]
+                        );
+                        $amount = round($coins * $valuta_exchange_rate_value, 2, PHP_ROUND_HALF_DOWN);
+                        $orderNumber = $coinsTransactionId;
+                        $returnUrl = $GLOBALS['protocol'] . '://' . $GLOBALS['domain'] .  '/payisgood_' . $coinsTransactionId; // надо строки запихнут в переменные
+                        $returnUrlFail = $GLOBALS['protocol'] . '://' . $GLOBALS['domain'] .  '/payisbad_' . $coinsTransactionId; // надо строки запихнуть в переменные
+                        /* 
+                            я хочу сделать отдельный урл для неудачной оплаты, потому что возможен вариант, когда время ссесси истечет и покупатель, уже не сможет вернуться в свой кабинет и его нужно куда-то выбросить в наружу, но при этом сообщить, что оплата не прошла, чтобы он не офигел. Я такого не делаю при успешной оплате, потому что даже если сессия истечет и человека выброшу из кабинета, он вернувшись в кабинет все равно увидит, что баланс пополнен
+                        */
+                        $userName = 'somebody'; // надо подставить правильное
+                        $password = 123456; // надо подставить правильное
+                        $requestBody = [
+                            'amount' => $amount,
+                            'orderNumber' => $orderNumber, 
+                            'returnUrl' => $returnUrl,
+                            'failUrl' => $returnUrlFail,
+                            'userName' => $userName,
+                            'password' => $password
+                        ];
+                        // $init = curl_init('https://3dsec.sberbank.ru/payment/rest/registerPreAuth.do'); // это реальный адрес, потому нужно будет включить
+                        // $init = curl_init('https://3dsec.sberbank.ru/payment/rest/register.do');
+                        $init = curl_init('http://sber.loc/registerPreAuth.php'); // надо потом будет удалить
+    
+                        curl_setopt($init, CURLOPT_RETURNTRANSFER, true);
+                        curl_setopt($init, CURLOPT_POST, true);
+                        curl_setopt($init, CURLOPT_POSTFIELDS, $requestBody);
+                        $json = curl_exec($init);
+                        echo $json;
+                        $text = json_decode($json, true);
+                        if ($text === null) {
+                            echo '$text==null';
+                            return self::getNotFound($mark);
+                        }
+                        if (!is_array($text)) {
+                            echo '!is_array($text)';
+                            return self::getNotFound($mark);
+                        }
+                        if (!array_key_exists('formUrl', $text) || !array_key_exists('orderId', $text)) {
+                            echo 'not formUrl and orderId';
+                            $codeError = array_key_exists('errorCode', $text) ? $text['errorCode'] : null; // надо будет потом создать страничку с обработкой ошибок
+                            $messageError = array_key_exists('errorMessage', $text) ? $text['errorMessage'] : null; // это на потом, после того как создам страничку для обработки ошибок
+                            return self::getNotFound($mark);
+                        }
+                        $location = $text['formUrl'];
+                        $numberOfChanged = $model->updateElements(
+                            "UPDATE `pay_system_transaction` SET `pay_system_transaction_order_id` = ? WHERE `coin_transaction_id` = ?",
+                            [$text['orderId'], $coinsTransactionId]
+                        );
+                        if ($numberOfChanged == 1) {
+                            header('Location:' . $location);
+                            exit;
+                        }
                         return self::getNotFound($mark);
-                    }
-                    if (!is_array($text)) {
-                        echo '!is_array($text)';
-                        return self::getNotFound($mark);
-                    }
-                    if (!array_key_exists('formUrl', $text) || !array_key_exists('orderId', $text)) {
-                        echo 'not formUrl and orderId';
-                        $codeError = array_key_exists('errorCode', $text) ? $text['errorCode'] : null; // надо будет потом создать страничку с обработкой ошибок
-                        $messageError = array_key_exists('errorMessage', $text) ? $text['errorMessage'] : null; // это на потом, после того как создам страничку для обработки ошибок
-                        return self::getNotFound($mark);
-                    }
-                    $location = $text['formUrl'];
-                    $numberOfChanged = $model->updateElements(
-                        "UPDATE `pay_system_transaction` SET `pay_system_transaction_order_id` = ? WHERE `coin_transaction_id` = ?",
-                        [$text['orderId'], $coinsTransactionId]
-                    );
-                    if ($numberOfChanged == 1) {
-                        header('Location:' . $location);
-                        exit;
                     }
                     return self::getNotFound($mark);
                    

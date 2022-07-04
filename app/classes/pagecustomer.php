@@ -143,6 +143,7 @@ HTML;
         <!DOCTYPE html>
         <html class="document" lang="{$this->getText($this->lang, 'langHeader')}">
         <head>
+            <meta name="yandex-verification" content="7f395c22ce58ae44" />
             <meta charset="UTF-8">
             <meta name="robots" content="noindex, nofollow">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
