@@ -9,37 +9,36 @@ require $_SERVER["DOCUMENT_ROOT"] . '/' . 'vendor/autoload.php';
 
 abstract class Controller
 {
-    // static private $pppp = '123456';
 
     static private $allCustomerCabinetPage = [
-        '/allparameters', 
-        '/brand', 
-        '/dealsdeal', 
-        '/dealsdeals', 
-        '/ecu', 
-        '/history', 
-        '/model', 
-        '/pay', 
-        '/profile', 
-        '/treatment',
-        '/payisbad',
-        '/payisgood'
+        'allparameters' => '/allparameters', 
+        'brand' => '/brand', 
+        'dealsdeal' => '/dealsdeal', 
+        'dealsdeals' => '/dealsdeals', 
+        'ecu' => '/ecu', 
+        'history' => '/history', 
+        'model' => '/model', 
+        'pay' => '/pay', 
+        'profile' => '/profile', 
+        'treatment' => '/treatment',
+        'payisbad' => '/payisbad',
+        'payisgood' => '/payisgood'
     ];
 
     static private $allCustomerFacadePage = [
-        '/contacts', 
-        '/index', 
-        '/newpassword', 
-        '/notfound', 
-        '/rememberpassword', 
-        '/sentmail', 
-        '/sentmailregistration', 
-        '/messagesentmailregistration', 
-        '/termsuse', 
-        '/about', 
-        '/registration',
-        '/payisbadf',
-        '/wronglink'
+        'contacts' => '/contacts', 
+        'index' => '/index', 
+        'newpassword' => '/newpassword', 
+        'notfound' => '/notfound', 
+        'rememberpassword' => '/rememberpassword', 
+        'sentmail' => '/sentmail', 
+        'sentmailregistration' => '/sentmailregistration', 
+        'messagesentmailregistration' => '/messagesentmailregistration', 
+        'termsuse' => '/termsuse', 
+        'about' => '/about', 
+        'registration' => '/registration',
+        'payisbadf' => '/payisbadf',
+        'wronglink' => '/wronglink'
     ];
 
     static private $allProviderPage = [
@@ -50,6 +49,21 @@ abstract class Controller
         '/valuta'
     ];
 
+    static private $arrPhrases = [
+        'In order to register in our system, you need to follow the link' => [
+            'en' => 'In order to register in our system, you need to follow the link',
+            'ru' => 'Для того, чтобы зарегистрироваться в нашей системе, Вам нужно перейти по ссылке'
+        ],
+        'Registration on the website' => [
+            'en' => 'Registration on the website',
+            'ru' => 'Регистрация на сайте'
+        ],
+        'Chip tuning' => [
+            'en' => 'Chip tuning',
+            'ru' => 'Чип-тюнинг'
+        ],
+        
+    ];
     // static function getDataFromOurerService(string $url, array $requestBody)
     // {
     //     $init = curl_init($url);
@@ -132,10 +146,10 @@ abstract class Controller
         );
         $checkCountPath = count($path); 
         if ($checkCountPath == 0) {
-            return self::getNotFound($mark); // это должно быть заменено
+            return self::getNotFound($mark, __LINE__ . ' ' .__FILE__); // это должно быть заменено
         }
         if (count($path) > 1) {
-            return self::getNotFound($mark); // это должно быть заменено
+            return self::getNotFound($mark, __LINE__ . ' ' .__FILE__); // это должно быть заменено
         }
         $fullPath = $GLOBALS['saveFilePath'] . $path[0]['file_path_path'];
 
@@ -363,6 +377,11 @@ abstract class Controller
 
     static private function getText($lang, $place, $dictionary) // $lang -- язык вида 'en'; $place -- это название массива являющегося элементом массива $date
     {
+        
+        // echo '<pre>';
+        // print_r($place);
+        // print_r($dictionary['Registration on the website']);
+        // echo '</pre>';
         if (isset($dictionary[$place][$lang])) {
             return $dictionary[$place][$lang];
         }
@@ -413,7 +432,7 @@ abstract class Controller
                 }
             }
         }
-        return self::getNotFound($toPage);
+        return self::getNotFound($toPage, __LINE__ . ' ' .__FILE__);
     }
 
     static function routingSimpleHistory3(array $fromPageArr, $cookiesmanagement, $model)
@@ -454,7 +473,7 @@ abstract class Controller
                 }
             }
         }
-        return self::getNotFound($toPage);
+        return self::getNotFound($toPage, __LINE__ . ' ' .__FILE__);
     }
 
     static function routingSimpleDealsdeals3(array $fromPageArr, $cookiesmanagement, $model)
@@ -481,7 +500,7 @@ abstract class Controller
                 }
             }
         }
-        return self::getNotFound($toPage);
+        return self::getNotFound($toPage, __LINE__ . ' ' .__FILE__);
     }
 
 
@@ -516,7 +535,7 @@ abstract class Controller
                 }
             }
         }
-        return self::getNotFound($toPage);
+        return self::getNotFound($toPage, __LINE__ . ' ' .__FILE__);
     }
     
 
@@ -567,7 +586,7 @@ abstract class Controller
         if (customCRC16($file_is_string) == $_POST['checksum']) {
             if (!is_dir($dirPath)) {
                 if (!mkdir($dirPath, $GLOBALS['accessRight'], true)) {
-                    return self::getNotFound($mark);
+                    return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
                 }
             }
             $path_to_file = $dirPath . '/' . $_FILES['original_file']['name'];
@@ -592,7 +611,7 @@ abstract class Controller
                 return self::getDealCard3($model, $mark);
             }
         }
-        return self::getNotFound($mark);
+        return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
     }
 
     static function addFile4 (int $date, int $customer_order_id, string $mark, Model $model, string $email, string $coins)
@@ -609,7 +628,7 @@ abstract class Controller
                     $dirPath = $GLOBALS['saveFilePath'] . $dirPathWithoutRootPath; // 'saveFilePath' это различие
                     if (!is_dir($dirPath)) {
                         if (!mkdir($dirPath, $GLOBALS['accessRight'], true)) {
-                            return self::getNotFound($mark); // не получилось создать директорию это различие
+                            return self::getNotFound($mark, __LINE__ . ' ' .__FILE__); // не получилось создать директорию это различие
                         }
                     }
                     $file_extension = strrchr($_FILES['original_file']['name'], '.'); // original_file различие 
@@ -627,7 +646,7 @@ abstract class Controller
                                     [$customer_order_id, $GLOBALS['notTreatmentedFile']] // 'notTreatmentedFile' $_POST customer_order_id это различие
                                 );
                                 if (count($isFilePath) > 1) {
-                                    return self::getNotFound($mark); // "В базе зафиксировано несколько путей сохранения файлов для данной сделки" различие
+                                    return self::getNotFound($mark, __LINE__ . ' ' .__FILE__); // "В базе зафиксировано несколько путей сохранения файлов для данной сделки" различие
                                 }
                                 if (!$isFilePath) {
                                     $updatedCount = $model->addElements(
@@ -637,7 +656,7 @@ abstract class Controller
                                 } else {
                                     $oldFilePath = $GLOBALS['saveFilePath'] . $isFilePath[0]['file_path_path'];
                                     if (!unlink($oldFilePath)) {
-                                        return self::getNotFound($mark); // 'не получилось удалить старый файл, но новый файл создан, но путь в базе остался старый' различие
+                                        return self::getNotFound($mark, __LINE__ . ' ' .__FILE__); // 'не получилось удалить старый файл, но новый файл создан, но путь в базе остался старый' различие
                                     }
                                     $updatedCount = $model->updateElements(
                                         "UPDATE file_path SET file_path_date = ?, file_path_path = ? WHERE customer_order_id = ? AND file_path_what_file = ?",
@@ -645,50 +664,65 @@ abstract class Controller
                                     );
                                 }
                                 if (!$updatedCount) {
-                                    return self::getNotFound($mark); // 'Не получилось записать в базу данный путь до файла' 
+                                    return self::getNotFound($mark, __LINE__ . ' ' .__FILE__); // 'Не получилось записать в базу данный путь до файла' 
                                 }
                                 // этот участок пока не доделан
                                 if ($_FILES['original_file']['error'] === 0) { // различие original_file
                                     return self::getDealCard3($model, $mark); // в этом месте может быть другой метод различие
                                 }
-                                return self::getNotFound($mark); // в этом месте может быть другой метод и сообщение $_FILES['treatedfile']['error'] не равен 0
+                                return self::getNotFound($mark, __LINE__ . ' ' .__FILE__); // в этом месте может быть другой метод и сообщение $_FILES['treatedfile']['error'] не равен 0
                             } else {
                                 unlink($path_to_file);
                                 rmdir($dirPath);
-                                return self::getNotFound($mark); // 'Чек суммы не совпали. файл и директории удалены. Надо попробовать еще раз'; другой метод
+                                return self::getNotFound($mark, __LINE__ . ' ' .__FILE__); // 'Чек суммы не совпали. файл и директории удалены. Надо попробовать еще раз'; другой метод
                             }
                         } else {
                             $errorCode = $_FILES['original_file']['error']; // различие original_file
                             if ($errorCode === 1 || $errorCode === 2) {
-                                return self::getNotFound($mark); // 'Файл слишком большой' различие
+                                return self::getNotFound($mark, __LINE__ . ' ' .__FILE__); // 'Файл слишком большой' различие
                             }
                             if ($errorCode === 4) {
-                                return self::getNotFound($mark); // 'Файл не был загружен' различие
+                                return self::getNotFound($mark, __LINE__ . ' ' .__FILE__); // 'Файл не был загружен' различие
                             }
                             if ($errorCode === 3) {
-                                return self::getNotFound($mark); // 'Файл загружен частично' различие
+                                return self::getNotFound($mark, __LINE__ . ' ' .__FILE__); // 'Файл загружен частично' различие
                             }
                             if ($errorCode === 7) {
-                                return self::getNotFound($mark); // Не удалось записать файл на диск' различие
+                                return self::getNotFound($mark, __LINE__ . ' ' .__FILE__); // Не удалось записать файл на диск' различие
                             }
                             if ($errorCode === 6) {
-                                return self::getNotFound($mark); // Отсутствует временная папка ' различие
+                                return self::getNotFound($mark, __LINE__ . ' ' .__FILE__); // Отсутствует временная папка ' различие
                             }
                             if ($errorCode === 8) {
-                                return self::getNotFound($mark); // При загрузке файла что-то пошло не так, но что именно не ясно
+                                return self::getNotFound($mark, __LINE__ . ' ' .__FILE__); // При загрузке файла что-то пошло не так, но что именно не ясно
                             }
-                            return self::getNotFound($mark);
+                            return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
                         }
                     } else {
-                        return self::getNotFound($mark); // файл слишком
+                        return self::getNotFound($mark, __LINE__ . ' ' .__FILE__); // файл слишком
                     }
                 
             
         
     }
 
-    static function getNotFound($mark)
+    static function getNotFound($mark, $place = 'The place is undefined') // $place это __LINE__ . ' ' .__FILE__ 
     {
+        $time = date("Y-m-d H:i:s");
+        try {
+            $fo = fopen($_SERVER['DOCUMENT_ROOT'] . '/log_not_found.txt', 'ab'); // $_SERVER['DOCUMENT_ROOT']; // /opt/lampp/htdocs/marketplace_chiptuning просто для напоминания как выглядит путь в document_root
+            if ($fo) {
+                fwrite($fo, $time . ' ' . $place . PHP_EOL);
+                if (!fclose($fo)) {
+                    throw new Exception('файл не получилось закрыть');
+                }
+            }
+        } catch (Exception $exc) {
+            echo $exc->getMessage(); // надо будет удалить потом
+            echo 'С файлом не получилось поработать'; // надо будет удалить потом
+        }
+        
+         
         return (new PageCustomerFacadeNotfound($mark, null))->getHTML();
     }
 
@@ -776,7 +810,7 @@ abstract class Controller
                 }
             }
         }
-        return self::getNotFound($toPage);
+        return self::getNotFound($toPage, __LINE__ . ' ' .__FILE__);
     }
 
     static function routingSimpleCabinetPage(array $fromPageArr, string $toPage, Model $model)
@@ -797,7 +831,7 @@ abstract class Controller
                 }
             }
         }
-        return self::getNotFound($toPage);
+        return self::getNotFound($toPage, __LINE__ . ' ' .__FILE__);
     }
 
     static function getTreatmentPage(Model $model, CookiesManagement $cookiesmanagement, $mark, bool $messageAboutNothing)
@@ -940,7 +974,7 @@ abstract class Controller
             []
         );
         if (count($conditioinIdIdRaw) != 1) {
-            return self::getNotFound($mark);
+            return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
         }
         $conditioinIdId = [];
         foreach ($conditioinIdIdRaw as $conditioinIdIdIndex) {
@@ -998,18 +1032,16 @@ abstract class Controller
             $mark = '/notfound';
             switch ($_SERVER['REQUEST_URI']) {
                 
-                case '/sentmailregistration':
-                    $mark = '/sentmailregistration';
-                break;
-                case '/messagesentmailregistration':
-                    $mark = '/messagesentmailregistration';
-                break;
-                case '/registration':
-                    $mark = '/registration';
-                break;
-                case '/pay':
-                    $mark = '/pay';
-                break;
+                
+                // case '/messagesentmailregistration':
+                //     $mark = '/messagesentmailregistration';
+                // break;
+                // case '/registration':
+                //     $mark = '/registration';
+                // break;
+                // case '/pay':
+                //     $mark = '/pay';
+                // break;
                 case '/treatment':
                     $mark = '/treatment';
                 break;
@@ -1055,51 +1087,35 @@ abstract class Controller
                 $_SERVER['REQUEST_URI'] == '/'          || 
                 $_SERVER['REQUEST_URI'] == '/index.php' || 
                 $_SERVER['REQUEST_URI'] == '/index.html') {
-                $mark = '/index';
+                $mark = self::$allCustomerFacadePage['index'];
                 if ($_SERVER['REQUEST_METHOD'] == "GET") {
                     return (new PageCustomerFacadeIndex($mark, null))->getHTML();
                 }
                 return self::routingSimplePage([], $mark, $checkReferer, self::$allCustomerFacadePage, self::$allCustomerCabinetPage);
             }
-            // if ($_SERVER['REQUEST_URI'] == '/payisgood') { // нужно данную строку сохранить в переменной
-            //     $mark = '/payisgood';
-
-            //     if ($_SERVER['REQUEST_METHOD'] == "GET") {
-            //         session_start();
-            //         if (isset($_SESSION['customer_id'])) {
-            //             $customerData = $model->getElements(
-            //                 'SELECT * FROM customer WHERE customer_id = ?',
-            //                 [$_SESSION['customer_id']]
-            //             )[0];
-            //             return (new PageCustomerCabinetPayisgood($mark, $_SESSION['customer_id'], $customerData['customer_email'], $customerData['customer_coins']))->getHTML();
-            //         }
-            //         return (new PageCustomerFacadeIndex($mark, null))->getHTML();
-            //     }
-            //     return self::getNotFound($mark);
-            // }
-
-            if ($_SERVER['REQUEST_URI'] == '/about') {
-                $mark = '/about';
+            
+            if ($_SERVER['REQUEST_URI'] == ($mark = self::$allCustomerFacadePage['about'])) {
 
                 return self::routingSimplePage([], $mark, $checkReferer, self::$allCustomerFacadePage);
             }
 
-            if ($_SERVER['REQUEST_URI'] == '/contacts') {
-                $mark = '/contacts';
+            if ($_SERVER['REQUEST_URI'] == ($mark = self::$allCustomerFacadePage['contacts'])) {
 
                 return self::routingSimplePage([], $mark, $checkReferer, self::$allCustomerFacadePage);
             }
-            if ($mark == '/sentmailregistration') {
-                if (self::checkMethodPostAndPageName('/index')) {
+
+            if ($_SERVER['REQUEST_URI'] == ($mark = self::$allCustomerFacadePage['sentmailregistration'])) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerFacadePage['index'])) {
                     return (new PageCustomerFacadeSentmailregistration($mark, null))->getHTML();
                 }
-                if (self::checkMethodPostAndPageName('/sentmailregistration')) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerFacadePage['sentmailregistration'])) {
                     return (new PageCustomerFacadeSentmailregistration($mark, null))->getHTML();
                 }
-                return self::getNotFound($mark);
+                return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
             }
-            if ($mark == '/messagesentmailregistration') {
-                if (self::checkMethodPostAndPageName('/sentmailregistration')) {
+
+            if ($_SERVER['REQUEST_URI'] == ($mark = self::$allCustomerFacadePage['messagesentmailregistration'])) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerFacadePage['sentmailregistration'])) {
                     PageCustomerFacadeSentmailregistration::$externalConditionEmailExist = $model->checkEmail($_POST['Email']);
                     $arrRegistrationMessages = PageCustomerFacadeSentmailregistration::getInputNameList();
                     if (self::checkAnalogOr($arrRegistrationMessages) )   {
@@ -1133,37 +1149,38 @@ abstract class Controller
                         ]
 
                     );
-                    $arrPhrases = [
-                        'In order to register in our system, you need to follow the link' => [
-                            'en' => 'In order to register in our system, you need to follow the link',
-                            'ru' => 'Для того, чтобы зарегистрироваться в нашей системе, Вам нужно перейти по ссылке'
-                        ],
-                        'Registration on the website' => [
-                            'en' => 'Registration on the website',
-                            'ru' => 'Регистрация на сайте'
-                        ],
-                        'Chip tuning' => [
-                            'en' => 'Chip tuning',
-                            'ru' => 'Чип-тюнинг'
-                        ],
+                    // $arrPhrases = [
+                    //     'In order to register in our system, you need to follow the link' => [
+                    //         'en' => 'In order to register in our system, you need to follow the link',
+                    //         'ru' => 'Для того, чтобы зарегистрироваться в нашей системе, Вам нужно перейти по ссылке'
+                    //     ],
+                    //     'Registration on the website' => [
+                    //         'en' => 'Registration on the website',
+                    //         'ru' => 'Регистрация на сайте'
+                    //     ],
+                    //     'Chip tuning' => [
+                    //         'en' => 'Chip tuning',
+                    //         'ru' => 'Чип-тюнинг'
+                    //     ],
                         
-                    ];
+                    // ];
                     $lang = $_POST['lang'];
                     $to = $email_for_registration_email;
-                    $headers[] = 'MIME-Version: 1.0';
-                    $headers[] = 'Content-type: text/html; charset=iso-8859-1';
-                    $subject = self::getText($lang, 'Registration on the website', $arrPhrases);
-                    $headers[] = 'From: .' . self::getText($lang, 'Chip tuning', $arrPhrases) . '<' . $GLOBALS['ourMail'] . '>';
+                    // $headers[] = 'MIME-Version: 1.0';
+                    // $headers[] = 'Content-type: text/html; charset=iso-8859-1';
+                    $subject = self::getText($lang, 'Registration on the website', self::$arrPhrases);
+                    // $headers[] = 'From: .' . self::getText($lang, 'Chip tuning', $arrPhrases) . '<' . $GLOBALS['ourMail'] . '>';
                     $message = '
-                        <html>
+                        <html lang="'. $lang .'">
                         <head>
-                          <title>' . self::getText($lang, 'Registration on the website', $arrPhrases) . '</title>
+                        <meta charset="UTF-8">
+                          <title>' . self::getText($lang, 'Registration on the website', self::$arrPhrases) . '</title>
                         </head>
                         <body>
-                          <p>' . self::getText($lang, 'Registration on the website', $arrPhrases) . '</p>
+                          <p>' . self::getText($lang, 'Registration on the website', self::$arrPhrases) . '</p>
                           <table>
                             <tr>
-                              <td> ' . self::getText($lang, 'In order to register in our system, you need to follow the link', $arrPhrases) . '<a href="' . $GLOBALS['protocol'] . '://' . $GLOBALS['domain'] . $email_for_registration_url . '">' . $GLOBALS['domain'] . $email_for_registration_url . '</td>
+                              <td> ' . self::getText($lang, 'In order to register in our system, you need to follow the link', self::$arrPhrases) . ' <a href="' . $GLOBALS['protocol'] . '://' . $GLOBALS['domain'] . $email_for_registration_url . '">' . $GLOBALS['domain'] . $email_for_registration_url . '</td>
                             </tr>
                           </table>
                         </body>
@@ -1173,7 +1190,7 @@ abstract class Controller
                     //     return (new PageCustomerFacadeMessagesentmailregistration($mark, null, $email_for_registration_email))->getHTML();
                     // } 
                     // else {
-                    //     return self::getNotFound($mark);
+                    //     return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
                     // }
                     $mail = new PHPMailer(true);
                     try {
@@ -1202,19 +1219,18 @@ abstract class Controller
                         $mail->isHTML(true);                                  //Set email format to HTML
                         $mail->Subject = $subject;
                         $mail->Body    = $message;
-                        $mail->AltBody = 'This is the body in plain text for non-HTML mail clients'; // надо будет исправить
-                    
+                        $mail->AltBody = self::getText($lang, 'Registration on the website', self::$arrPhrases) . self::getText($lang, 'In order to register in our system, you need to follow the link', self::$arrPhrases) . $GLOBALS['protocol'] . '://' . $GLOBALS['domain'] . $email_for_registration_url;
                         $mail->send();
                         return (new PageCustomerFacadeMessagesentmailregistration($mark, null, $email_for_registration_email))->getHTML();
                     } catch (Exception $e) {
                         // echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
-                        return self::getNotFound($mark);
+                        return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
                     }
                 }
-                return self::getNotFound($mark);
+                return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
             }
-            if ($mark == '/pay') {
-                if (self::checkMethodPostAndPageName('/registration')) {
+            if ($_SERVER['REQUEST_URI'] == ($mark = self::$allCustomerCabinetPage['pay'])) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerFacadePage['registration'])) {
                     PageCustomerFacadeRegistration::$externalConditionEmailExist = $model->checkEmail($_POST['Email']);
                     $arrRegistrationMessages = PageCustomerFacadeRegistration::getInputNameList();
                     if (self::checkAnalogOr($arrRegistrationMessages) )   {
@@ -1228,7 +1244,7 @@ abstract class Controller
                     $model->addCustomer($tel, $email, $valuta, $pass, $lang);
                     return self::returnPageCustomerCabinetPayWithStaingId($mark, $email, $pass, $model, $cookiesmanagement);
                 } 
-                if (self::checkMethodPostAndPageName('/pay') && self::checkMethodName('coins', 'POST', $_POST)) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerCabinetPage['pay']) && self::checkMethodName('coins', 'POST', $_POST)) {
                     $coins = (float) $model->cleaningDataForm($_POST['coins']);
                     self::startSessionWithCheck($cookiesmanagement);
                     if ($_SESSION['customer_id']) {
@@ -1306,17 +1322,17 @@ abstract class Controller
                         $text = json_decode($json, true);
                         if ($text === null) {
                             echo '$text==null';
-                            return self::getNotFound($mark);
+                            return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
                         }
                         if (!is_array($text)) {
                             echo '!is_array($text)';
-                            return self::getNotFound($mark);
+                            return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
                         }
                         if (!array_key_exists('formUrl', $text) || !array_key_exists('orderId', $text)) {
                             echo 'not formUrl and orderId';
                             $codeError = array_key_exists('errorCode', $text) ? $text['errorCode'] : null; // надо будет потом создать страничку с обработкой ошибок
                             $messageError = array_key_exists('errorMessage', $text) ? $text['errorMessage'] : null; // это на потом, после того как создам страничку для обработки ошибок
-                            return self::getNotFound($mark);
+                            return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
                         }
                         $location = $text['formUrl'];
                         $numberOfChanged = $model->updateElements(
@@ -1327,9 +1343,9 @@ abstract class Controller
                             header('Location:' . $location);
                             exit;
                         }
-                        return self::getNotFound($mark);
+                        return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
                     }
-                    return self::getNotFound($mark);
+                    return self::getNotFound($mark, __LINE__ . ' ' .__FILE__); 
                    
                     /* 
 
@@ -1342,7 +1358,7 @@ abstract class Controller
 
                     // return self::returnPageCustomerCabinetPayWithoutStaingId($mark, $model);
                 }
-                if (self::checkMethodPostAndPageName('/index')) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerFacadePage['index'])) {
                     PageCustomerFacadeIndex::$externalConditionEmailNotExist = !$model->checkEmail($_POST['Email']);
                     PageCustomerFacadeIndex::$externalConditionPassWrong = !$model->checkPass($_POST['Email'], $_POST['Pass']);
                     $arrIndexMessages = PageCustomerFacadeIndex::getInputNameList();
@@ -1355,54 +1371,54 @@ abstract class Controller
                 $fromPageArr = self::$allCustomerCabinetPage;
                 return self::routingSimplePayPage($fromPageArr, $cookiesmanagement, $model);
             }
-            if ($mark == '/treatment') {
+            if ($_SERVER['REQUEST_URI'] == ($mark = self::$allCustomerCabinetPage['treatment'])) {
                 // $fromPageArr = ['/dealsdeals', '/dealsdeal', '/history', '/profile', '/profilenotupdated', '/profileupdated', '/pay', '/brand', '/payisgood'];
                 $fromPageArr = self::$allCustomerCabinetPage;
                 if (self::checkMethodPostAndPageNames($fromPageArr)) {
                     return self::getTreatmentPage($model, $cookiesmanagement, $mark, false);
                 }
             }
-            if ($mark == '/brand') {
-                if (self::checkMethodPostAndPageName('/treatment')) {
+            if ($_SERVER['REQUEST_URI'] == ($mark = self::$allCustomerCabinetPage['brand'])) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerCabinetPage['treatment'])) {
                     if (array_key_exists('vehicle_type', $_POST) && $_POST['vehicle_type'] != null) {
                         return self::getBrandPage($model, $cookiesmanagement, $mark, false);
                     }
                     return self::getTreatmentPage($model, $cookiesmanagement, $mark, true);
                 }
-                if (self::checkMethodPostAndPageName('/model')) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerCabinetPage['model'])) {
                     return self::getBrandPage($model, $cookiesmanagement, $mark, false);
                 }
             }
-            if ($mark == '/model') {
-                if (self::checkMethodPostAndPageName('/brand')) {
+            if ($_SERVER['REQUEST_URI'] == ($mark = self::$allCustomerCabinetPage['model'])) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerCabinetPage['brand'])) {
                     if (array_key_exists('vehicle_brand', $_POST) && $_POST['vehicle_brand'] != null) {
                         return self::getModelPage($model, $cookiesmanagement, $mark, false);
                     }
                     return self::getBrandPage($model, $cookiesmanagement, $mark, true);
                 }
-                if (self::checkMethodPostAndPageName('/ecu')) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerCabinetPage['ecu'])) {
                     return self::getModelPage($model, $cookiesmanagement, $mark, false);
                 }
             }
-            if ($mark == '/ecu') {
-                if (self::checkMethodPostAndPageName('/model')) {
+            if ($_SERVER['REQUEST_URI'] == ($mark = self::$allCustomerCabinetPage['ecu'])) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerCabinetPage['model'])) {
                     if (array_key_exists('vehicle_model', $_POST) && $_POST['vehicle_model'] != null) {
                         return self::getEcuPage($model, $cookiesmanagement, $mark, false);
                     }
                     return self::getModelPage($model, $cookiesmanagement, $mark, true);
                 }
-                if (self::checkMethodPostAndPageName('/allparameters')) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerCabinetPage['allparameters'])) {
                     return self::getEcuPage($model, $cookiesmanagement, $mark, false);
                 }
             }
-            if ($mark == '/allparameters') {
-                if (self::checkMethodPostAndPageName('/ecu')) {
+            if ($_SERVER['REQUEST_URI'] == ($mark = self::$allCustomerCabinetPage['allparameters'])) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerCabinetPage['ecu'])) {
                     if (array_key_exists('ecu', $_POST) && $_POST['ecu'] != null) {
                         return self::getAllparametersPage($model, $cookiesmanagement, $mark, false, false, false);
                     }
                     return self::getEcuPage($model, $cookiesmanagement, $mark, true);
                 }
-                if (self::checkMethodPostAndPageName('/allparameters')) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerCabinetPage['allparameters'])) {
                     $service_type_name = 'file treatment';
                     $order_status = 'unpaid';
                     $service_type_id = $model->getElements(
@@ -1411,7 +1427,7 @@ abstract class Controller
                     )[0]['service_type_id'];
 
                     if (!array_key_exists('total_sum', $_POST)) {
-                        return self::getNotFound($mark);
+                        return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
                     }
                     $customer_order_amount = $_POST['total_sum'];
 
@@ -1513,13 +1529,13 @@ abstract class Controller
                     return self::addFile4($date, $customer_order_id, $mark, $model, $email, $coins);
                 }
             }
-            if ($mark == '/dealsdeals') {
+            if ($_SERVER['REQUEST_URI'] == ($mark = self::$allCustomerCabinetPage['dealsdeals'])) {
                 // $fromPageArr = ['/pay', '/dealsdeal', '/treatment', '/model', '/brand', '/ecu', '/profile', '/profilenotupdated', '/profileupdated', '/history'];
                 $fromPageArr = self::$allCustomerCabinetPage;
                 return self::routingSimpleDealsdeals3($fromPageArr, $cookiesmanagement, $model);
             }
-            if ($mark == '/dealsdeal') {
-                if (self::checkMethodPostAndPageName('/dealsdeal')) {
+            if ($_SERVER['REQUEST_URI'] == ($mark = self::$allCustomerCabinetPage['dealsdeal'])) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerCabinetPage['dealsdeal'])) {
                     self::startSessionWithCheck($cookiesmanagement);
                     if (array_key_exists('payService', $_POST)) {
                         $status = $model->getElements(
@@ -1552,16 +1568,16 @@ abstract class Controller
                     }
                     return self::getDealCard3($model, $mark);
                 }
-                if (self::checkMethodPostAndPageName('/dealsdeals')) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerCabinetPage['dealsdeals'])) {
                     return self::getDealCard3($model, $mark);
                 }
             }
-            if ($mark == '/history') {
+            if ($_SERVER['REQUEST_URI'] == ($mark = self::$allCustomerCabinetPage['history'])) {
                 $fromPageArr = self::$allCustomerCabinetPage;
                 return self::routingSimpleHistory3($fromPageArr, $cookiesmanagement, $model);
             }
-            if ($mark == '/profile') {
-                if (self::checkMethodPostAndPageName('/profile')) {
+            if ($_SERVER['REQUEST_URI'] == ($mark = self::$allCustomerCabinetPage['profile'])) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerCabinetPage['profile'])) {
                     $arrProfileInputContent = PageCustomerCabinetProfile::getInputNameList();
                     $arrProfileMessage = [];
                     foreach (PageCustomerCabinetProfile::$arrMessageNames as $prefix => $postfixList) {
@@ -1597,24 +1613,23 @@ abstract class Controller
                 $fromPageArr = self::$allCustomerCabinetPage;
                 return self::routingSimpleProfile3($fromPageArr, $cookiesmanagement, $model);
             }
-            if ($mark == '/rememberpassword') {
-                if (self::checkMethodPostAndPageName('/index')) {
+            if ($_SERVER['REQUEST_URI'] == ($mark = self::$allCustomerFacadePage['rememberpassword'])) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerFacadePage['index'])) {
                     return (new PageCustomerFacadeRememberpassword($mark, null))->getHTML();
                 }
-                if (self::checkMethodPostAndPageName('/rememberpassword')) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerFacadePage['rememberpassword'])) {
                     return (new PageCustomerFacadeRememberpassword($mark, null))->getHTML();
                 }
             }
-            if ($mark = $_SERVER['REQUEST_URI'] == '/uploadprovfile') {
-                if (self::checkMethodPostAndPageName('/dealsdeal')) {
+            if ($_SERVER['REQUEST_URI'] == ($mark = '/uploadprovfile')) { // в данном строку с адресом /uploadprofile вставляем прямо строкой без изспользования self::$allCustomerCabinetPage потому что такой страницы нет
+                if (self::checkMethodPostAndPageName(self::$allCustomerCabinetPage['dealsdeal'])) {
                     if (array_key_exists('customer_order_id', $_POST)) {
                         return self::uploadTreatedFile($mark, $model, $_POST['customer_order_id']);
                     } 
                 }
             }
-            if ($mark = $_SERVER['REQUEST_URI'] == '/sentmail') {
-                
-                if (self::checkMethodPostAndPageName('/rememberpassword')) {
+            if ($_SERVER['REQUEST_URI'] == ($mark = self::$allCustomerFacadePage['sentmail'])) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerFacadePage['rememberpassword'])) {
                     $arrRegistrationMessages = PageCustomerFacadeRememberpassword::getInputNameList();
                     if (self::checkAnalogOr($arrRegistrationMessages) )   {
                         return (new PageCustomerFacadeRememberpassword($mark, null, $arrRegistrationMessages))->getHTML();
@@ -1700,10 +1715,10 @@ abstract class Controller
                         return (new PageCustomerFacadeSentmail($mark, null))->getHTML();
                     } 
                     else {
-                        return self::getNotFound($mark);
+                        return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
                     }
                 }
-                if (self::checkMethodPostAndPageName('/sentmail')) {
+                if (self::checkMethodPostAndPageName(self::$allCustomerFacadePage['sentmail'])) {
                     return (new PageCustomerFacadeSentmail($mark, null))->getHTML();
                 }
             }
@@ -1749,10 +1764,10 @@ abstract class Controller
                     if ($_SERVER['REQUEST_METHOD'] == "GET") {
                         return (new PageCustomerFacadeRegistration($mark, null, $registrationEmail))->getHTML();
                     }
-                    if (self::checkMethodPostAndPageName('/registration')) {
+                    if (self::checkMethodPostAndPageName(self::$allCustomerFacadePage['registration'])) {
                         return (new PageCustomerFacadeRegistration($mark, null, $registrationEmail))->getHTML();
                     }
-                    return self::getNotFound($mark);
+                    return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
                 }
                 if (isset($paySystemIsGoodUrl) && $paySystemIsGoodUrl) {
                     $mark = $paySystemIsGoodUrl;
@@ -1768,7 +1783,7 @@ abstract class Controller
                         if (!$json = self::getJSONfromOuterService($url, $requestBody)) 
                         {
                             echo 'after getJSONfromOuterService';
-                            return self::getNotFound($mark); // надо будет в страничку, что-то пошло не так, добавить параметер строку и словарь
+                            return self::getNotFound($mark, __LINE__ . ' ' .__FILE__); // надо будет в страничку, что-то пошло не так, добавить параметер строку и словарь
                             // здесь ошибка подразумевает, что-то банк отправил и мы это получили, но что-то не то и поэтому непонятно, что произошло. Поэтому нужно чтобы пользователь проверил списались ли у него деньги и если списались нужно, чтобы он с нами связался и мы бы вместе разобрались бы с тем, что случилось. Произошла ошибка на стороне банка, Вам нужно связаться с нами.
                         }
                         // var_dump($json);
@@ -1777,7 +1792,7 @@ abstract class Controller
                         // echo json_last_error(), '<br>'; 
                         if (json_last_error() !== 0) {
                             // echo 'json_last_error', '<br>';
-                            return self::getNotFound($mark); // надо будет передать ошибку может быть поможет
+                            return self::getNotFound($mark, __LINE__ . ' ' .__FILE__); // надо будет передать ошибку может быть поможет
                         }
                         $actionCode = array_key_exists('actionCode', $text) ? $text['actionCode'] : null;
                         $orderStatus = array_key_exists('orderStatus', $text) ? $text['orderStatus'] : null;
@@ -1804,15 +1819,15 @@ abstract class Controller
                                     );
                                     if ($numberCoinsLine != 1) {
                                         echo 'Из таблицы customer вернулось больше одно строки или ни одной';
-                                        return self::getNotFound($mark);
+                                        return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
                                     }
                                 } else {
                                     echo 'Если из таблицы coin_transaction ничего не вернулось';
-                                    return self::getNotFound($mark);
+                                    return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
                                 }
                             } else {
                                 echo 'в таблице pay_system_transaction ничего не обновилось';
-                                return self::getNotFound($mark);
+                                return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
                             }
                         } else {
                             $numberOfLines = $model->updateElements(
@@ -1820,7 +1835,7 @@ abstract class Controller
                                 [ 'PaySystemFailed', $paySystemIsGoodId]
                             );
                             echo 'cтатусные переменные в не соответсвуют проведению оплаты';
-                            return self::getNotFound($mark);
+                            return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
                         }
 
                         if (isset($_SESSION['customer_id'])) {
@@ -1833,7 +1848,7 @@ abstract class Controller
                         return (new PageCustomerFacadeIndex($mark, null))->getHTML();
                     }
                     echo 'неправильная ссылка';
-                    return self::getNotFound($mark);
+                    return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
                 }
                 if (isset($paySystemIsBadUrl) && $paySystemIsBadUrl) {
                     $mark = $paySystemIsBadUrl;
@@ -1854,7 +1869,7 @@ abstract class Controller
                             return (new PageCustomerFacadePayisbadF($mark, null))->getHTML();
                         }
                     }
-                    return self::getNotFound($mark);
+                    return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
                 }
             }
 
@@ -1869,7 +1884,7 @@ abstract class Controller
                     return "<form method='POST' action=''/maingate''><input type='hidden' value='/maingate' name='Page'><input type='submit'></form>"; //это нужно было для проверки можно удалять
                     
                 }
-                return self::getNotFound($mark);
+                return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
             } // это не закончено
 
             if ($_SERVER['REQUEST_URI'] == '/gate') {
@@ -1983,7 +1998,7 @@ abstract class Controller
                                 if ($errorCode === 8) {
                                     return self::getDealPage($mark, $model, 'При загрузке файла что-то пошло не так, но что именно не ясно');
                                 }
-                                return self::getNotFound($mark);
+                                return self::getNotFound($mark, __LINE__ . ' ' .__FILE__);
                             }
                         } else {
                             return self::getDealPage($mark, $model, 'Файл слишком большой');
@@ -2199,7 +2214,7 @@ abstract class Controller
                     }
                 }
             }            
-            return self::getNotFound($mark); // это последний бастион если ни одно условие не совпало
+            return self::getNotFound($mark, __LINE__ . ' ' .__FILE__); // это последний бастион если ни одно условие не совпало
 
         } catch (Exception $e) {
             echo $e->getMessage();
